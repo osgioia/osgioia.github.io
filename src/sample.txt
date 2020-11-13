@@ -1,0 +1,19 @@
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Fri Jun 26 16:31:37 -03 2020
+
+  System load:    0.52      Users logged in:       0
+  Usage of /home: unknown   IPv4 address for eth0: 192.168.0.78
+  Memory usage:   73%       IPv4 address for eth1: 192.168.56.1
+  Swap usage:     24%       IPv4 address for eth2: 172.18.36.1
+  Processes:      7
+
+
+0 updates can be installed immediately.
+0 of these updates are security updates.
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
