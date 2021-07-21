@@ -3,7 +3,7 @@ import Terminal from 'terminal-in-react';
 import './App.css';
 
 export default class App extends Component {
-  skills = () => 'Python, NodeJS, VB.NET, C#, SQL Server, MySQL, MariaDB, MongoDB'
+  skills = () => 'Python, NodeJS, VB.NET, C#, SQL Server, MySQL, MariaDB, MongoDB, Oracle, Postgres, Entity Framework, React, Docker, Amazon Web Services (EC2, S3), Heroku, Jenkins'
   projects = () => 'Not yet implemented!'
 
   
@@ -26,7 +26,7 @@ export default class App extends Component {
             'github': () => window.open('https://github.com/osgioia/', '_blank'),
             'linkedin': () => window.open('https://www.linkedin.com/in/osvaldogioia/', '_blank'),
             'codepen': () => window.open('https://codepen.io/osgioia/', '_blank'),
-            'blog': () => window.open('', '_blank'),
+            'blog': () => window.open('https://collectednotes.com/aioigzo', '_blank'),
             skills: this.skills,
             projects: this.projects,
           }}
