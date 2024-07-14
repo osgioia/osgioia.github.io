@@ -13,7 +13,7 @@
     "react-dom": "^16.14.0",
     "react-github-btn": "^1.2.0",
     "react-icons": "^3.11.0",
-    "react-scripts": "3.4.3"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "npm run watch:css && react-scripts --openssl-legacy-provider start",
