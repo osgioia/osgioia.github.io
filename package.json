@@ -2,7 +2,7 @@
   "name": "osgioia-portfolio",
   "description": "An portfolio about this guy.",
   "version": "0.1.0",
-  "homepage": "osgioia.dev",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
