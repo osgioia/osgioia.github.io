@@ -18,6 +18,7 @@
   "scripts": {
     "start": "npm run watch:css && react-scripts --openssl-legacy-provider start",
     "build": "npm run watch:css && react-scripts --openssl-legacy-provider build",
+    "deploy" : "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css"
@@ -39,6 +40,7 @@
   },
   "devDependencies": {
     "autoprefixer": "9.8.6",
+    "gh-pages": "^6.1.1",
     "postcss-cli": "^8.1.0",
     "tailwindcss": "^1.9.2"
   },
