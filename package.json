@@ -1,8 +1,8 @@
 {
-  "name": "react-tailwind-portfolio",
-  "description": "An open-source portfolio template built with React and Tailwind.",
+  "name": "osgioia-portfolio",
+  "description": "An portfolio about this guy.",
   "version": "0.1.0",
-  "homepage": ".",
+  "homepage": "osgioia.dev",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
