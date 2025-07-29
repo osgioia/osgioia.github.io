@@ -17,11 +17,12 @@
   },
   "scripts": {
     "start": "npm run watch:css && react-scripts --openssl-legacy-provider start",
-    "build": "npm run watch:css && react-scripts --openssl-legacy-provider build",
-    "deploy" : "gh-pages -d build",
+    "build": "npm run build:css && react-scripts --openssl-legacy-provider build",
+    "build:css": "postcss src/assets/tailwind.css -o src/assets/main.css",
+    "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css --watch",
+    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"

@@ -1,6 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# React dependencies
 /node_modules
 /.pnp
 .pnp.js
@@ -10,6 +10,34 @@
 
 # production
 /build
+
+# Jekyll & Ruby
+blog/_site/
+blog/.sass-cache/
+blog/.jekyll-cache/
+blog/.jekyll-metadata
+blog/vendor/
+blog/.bundle/
+blog/Gemfile.lock
+
+# Ruby gems
+*.gem
+.bundle
+.config
+coverage
+InstalledFiles
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
+
+# YARD artifacts
+.yardoc
+_yardoc
+doc/
 
 # misc
 .DS_Store
@@ -21,3 +49,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

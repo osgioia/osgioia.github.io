@@ -1,0 +1,50 @@
+# Site settings
+title: Oz Gioia Blog
+email: contact@osgioia.dev
+description: >-
+  Senior Software Engineer blog about development, cloud technologies, and best practices.
+baseurl: "/blog"
+url: "https://osgioia.dev"
+
+# GitHub Pages settings
+repository: osgioia/osgioia.github.io
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Collections
+collections:
+  posts:
+    output: true
+    permalink: /:year/:month/:day/:title/
+
+# Pagination
+paginate: 5
+paginate_path: "/page:num/"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Default values
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Oz Gioia"

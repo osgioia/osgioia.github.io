@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>{% if page.title %}{{ page.title | escape }} - {{ site.title }}{% else %}{{ site.title | escape }}{% endif %}</title>
+    <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
+    
+    <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+    <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
+    <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ '/feed.xml' | relative_url }}">
+    
+    {% seo %}
+    
+    <script>
+        // Dark mode toggle functionality
+        function initDarkMode() {
+            const savedTheme = localStorage.getItem('blog-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('blog-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('blog-theme', 'dark');
+            }
+        }
+        
+        // Initialize on page load
+        initDarkMode();
+    </script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="wrapper">
+            <nav class="site-nav">
+                <a class="site-title" href="{{ '/' | relative_url }}">{{ site.title | escape }}</a>
+                <div class="nav-links">
+                    <a href="{{ '/' | relative_url }}">Home</a>
+                    <a href="{{ site.url }}">Portfolio</a>
+                    <button onclick="toggleDarkMode()" class="dark-mode-toggle" aria-label="Toggle dark mode">
+                        <span class="sun-icon">☀️</span>
+                        <span class="moon-icon">🌙</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="wrapper">
+            {{ content }}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrapper">
+            <div class="footer-content">
+                <p>&copy; {{ 'now' | date: "%Y" }} {{ site.title }}. Built with Jekyll.</p>
+                <div class="social-links">
+                    <a href="https://github.com/osgioia" target="_blank">GitHub</a>
+                    <a href="https://www.linkedin.com/in/osvaldogioia/" target="_blank">LinkedIn</a>
+                    <a href="https://x.com/aioigzo" target="_blank">Twitter</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

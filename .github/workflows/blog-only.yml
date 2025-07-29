@@ -1,0 +1,64 @@
+# Workflow específico para actualizar solo el blog
+# Se ejecuta solo cuando cambias archivos en la carpeta blog/
+name: Update Blog Only
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'blog/**'
+      - '!blog/vendor/**'  # Ignore vendor directory
+
+jobs:
+  update-blog:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.0'
+        bundler-cache: true
+        working-directory: ./blog
+
+    - name: Install Jekyll dependencies
+      run: |
+        cd blog
+        bundle config set path 'vendor/bundle'
+        bundle install
+
+    - name: Download previous React build
+      uses: actions/download-artifact@v3
+      with:
+        name: react-build
+        path: build
+      continue-on-error: true
+
+    - name: Build Jekyll blog
+      run: |
+        cd blog
+        bundle exec jekyll build --config _config.yml,_config_production.yml --destination ../_site/blog
+      env:
+        JEKYLL_ENV: production
+
+    - name: Prepare deployment
+      run: |
+        mkdir -p _site
+        
+        # Use existing React build or create placeholder
+        if [ -d "build" ]; then
+          cp -r build/* _site/
+        else
+          # Fetch current site and extract React part
+          curl -s https://osgioia.dev > _site/index.html || echo "Could not fetch existing site"
+        fi
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_site
+        cname: osgioia.dev

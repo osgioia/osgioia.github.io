@@ -1,0 +1,35 @@
+# Production configuration for Jekyll blog
+# This file extends _config.yml for production builds
+
+url: "https://osgioia.dev"
+baseurl: "/blog"
+
+# Optimize for production
+sass:
+  style: compressed
+
+# Enable plugins for GitHub Pages
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# SEO settings
+title: "Oz Gioia Blog"
+description: "Senior Software Engineer blog about development, cloud technologies, and best practices."
+author: "Oz Gioia"
+
+# Social media
+twitter:
+  username: aioigzo
+  card: summary
+
+social:
+  name: Oz Gioia
+  links:
+    - https://twitter.com/aioigzo
+    - https://www.linkedin.com/in/osvaldogioia
+    - https://github.com/osgioia
+
+# Analytics (optional - add your Google Analytics ID if you have one)
+# google_analytics: UA-XXXXXXXX-X

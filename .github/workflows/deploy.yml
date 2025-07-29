@@ -1,0 +1,122 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes
+        id: changes
+        run: |
+          # Check if React portfolio files changed
+          if git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|tailwind\.js|postcss\.config\.js)' > /dev/null; then
+            echo "react_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "react_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if Jekyll blog files changed
+          if git diff --name-only HEAD~1 HEAD | grep -E '^blog/' > /dev/null; then
+            echo "blog_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "blog_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "React changed: $(echo ${{ steps.changes.outputs.react_changed }})"
+          echo "Blog changed: $(echo ${{ steps.changes.outputs.blog_changed }})"
+
+      # Cache for React build
+      - name: Cache React build
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: react-build-${{ hashFiles('src/**/*', 'public/**/*', 'package.json', 'tailwind.js') }}
+          restore-keys: |
+            react-build-
+
+      # Cache for Jekyll build
+      - name: Cache Jekyll build
+        uses: actions/cache@v3
+        with:
+          path: _site/blog
+          key: jekyll-build-${{ hashFiles('blog/**/*') }}
+          restore-keys: |
+            jekyll-build-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+          working-directory: ./blog
+
+      - name: Install React dependencies
+        if: steps.changes.outputs.react_changed == 'true' || !hashFiles('build/**/*')
+        run: npm ci
+
+      - name: Build React portfolio
+        if: steps.changes.outputs.react_changed == 'true' || !hashFiles('build/**/*')
+        run: |
+          npm run build:css
+          npm run build
+
+      - name: Install Jekyll dependencies
+        if: steps.changes.outputs.blog_changed == 'true' || !hashFiles('_site/blog/**/*')
+        run: |
+          cd blog
+          bundle config set path 'vendor/bundle'
+          bundle install
+
+      - name: Build Jekyll blog
+        if: steps.changes.outputs.blog_changed == 'true' || !hashFiles('_site/blog/**/*')
+        run: |
+          cd blog
+          bundle exec jekyll build --config _config.yml,_config_production.yml --destination ../_site/blog
+        env:
+          JEKYLL_ENV: production
+
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p _site
+
+          # Copy React build
+          if [ -d "build" ]; then
+            cp -r build/* _site/
+            echo "✅ React build copied to _site"
+          else
+            echo "❌ React build not found"
+            exit 1
+          fi
+
+          # Verify blog files
+          if [ -d "_site/blog" ]; then
+            echo "✅ Blog build found in _site/blog"
+          else
+            echo "❌ Blog build not found"
+            exit 1
+          fi
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          cname: osgioia.dev
