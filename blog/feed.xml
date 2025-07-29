@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2025-07-29T14:35:27+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Stuff’s Coming (Eventually)</title><link href="https://osgioia.dev/blog/2025/07/29/stuff-coming/" rel="alternate" type="text/html" title="Stuff’s Coming (Eventually)" /><published>2025-07-29T14:05:00+00:00</published><updated>2025-07-29T14:05:00+00:00</updated><id>https://osgioia.dev/blog/2025/07/29/stuff-coming</id><content type="html" xml:base="https://osgioia.dev/blog/2025/07/29/stuff-coming/"><![CDATA[<p>We’ve all heard it: <em>“Big things coming soon!”</em></p>
+
+<p>Usually said by your friend’s indie band that’s been promising a new EP since 2019. Well… welcome to the software version of that.</p>
+
+<p>This blog exists mostly so I can tell myself I’m working on “content” while doing absolutely nothing about it for weeks. But hey — baby steps. At least I set up Jekyll and deployed it. That counts as productivity™.</p>
+
+<h2 id="a-little-disclaimer">A Little Disclaimer</h2>
+
+<p>Everything I write here is <em>heavily</em> altered to protect the innocent (and the legally questionable). Names of companies, products, or people will either be changed or conveniently forgotten — not because I’m polite, but because lawsuits are expensive and I’m not AWS.</p>
+
+<h2 id="what-to-expect-maybe">What To Expect (Maybe)</h2>
+
+<p>Think of this blog as a mix of:</p>
+
+<ul>
+  <li>Tech stuff I found cool, confusing, or downright stupid</li>
+  <li>Personal war stories from working in cloud and backend development</li>
+  <li>The occasional meme in disguise as a “best practice”</li>
+</ul>
+
+<p>Will I post regularly? Who knows.<br />
+Will it be useful? Probably.<br />
+Will it be sarcastic? Absolutely.</p>
+
+<p>So yeah… enjoy it. Or don’t. I’m not your manager.</p>]]></content><author><name>Oz Gioia</name></author><category term="meta" /><category term="blog" /><category term="announcement" /><category term="sarcasm" /><category term="indieDev" /><summary type="html"><![CDATA[You know that thing indie bands always say before ghosting for 8 months? Yeah, that.]]></summary></entry></feed>
