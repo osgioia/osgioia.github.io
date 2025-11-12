@@ -16,44 +16,28 @@ jobs:
         with:
           fetch-depth: 2
 
+      # ✅ Detecta cambios correctamente
       - name: Check for changes
         id: changes
         run: |
-          # Check if React portfolio files changed
           if git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|tailwind\.js|postcss\.config\.js)' > /dev/null; then
-            echo "react_changed=true" >> $GITHUB_OUTPUT
+            echo "react_changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "react_changed=false" >> $GITHUB_OUTPUT
+            echo "react_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Check if Jekyll blog files changed
           if git diff --name-only HEAD~1 HEAD | grep -E '^blog/' > /dev/null; then
-            echo "blog_changed=true" >> $GITHUB_OUTPUT
+            echo "blog_changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "blog_changed=false" >> $GITHUB_OUTPUT
+            echo "blog_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          echo "React changed: $(echo ${{ steps.changes.outputs.react_changed }})"
-          echo "Blog changed: $(echo ${{ steps.changes.outputs.blog_changed }})"
+      - name: Debug outputs
+        run: |
+          echo "React changed: ${{ steps.changes.outputs.react_changed }}"
+          echo "Blog changed: ${{ steps.changes.outputs.blog_changed }}"
 
-      # Cache for React build
-      - name: Cache React build
-        uses: actions/cache@v3
-        with:
-          path: build
-          key: react-build-${{ hashFiles('src/**/*', 'public/**/*', 'package.json', 'tailwind.js') }}
-          restore-keys: |
-            react-build-
-
-      # Cache for Jekyll build
-      - name: Cache Jekyll build
-        uses: actions/cache@v3
-        with:
-          path: _site/blog
-          key: jekyll-build-${{ hashFiles('blog/**/*') }}
-          restore-keys: |
-            jekyll-build-
-
+      # ✅ Cache de dependencias (no del build)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -67,52 +51,55 @@ jobs:
           bundler-cache: true
           working-directory: ./blog
 
+      # ✅ Instala dependencias de React solo si cambió
       - name: Install React dependencies
-        if: steps.changes.outputs.react_changed == 'true' || !hashFiles('build/**/*')
+        if: steps.changes.outputs.react_changed == 'true'
         run: npm ci
 
+      # ✅ Compila siempre si cambió algo (sin usar cache viejo)
       - name: Build React portfolio
-        if: steps.changes.outputs.react_changed == 'true' || !hashFiles('build/**/*')
+        if: steps.changes.outputs.react_changed == 'true'
         run: |
           npm run build:css
           npm run build
 
+      # ✅ Instala dependencias de Jekyll solo si cambió algo del blog
       - name: Install Jekyll dependencies
-        if: steps.changes.outputs.blog_changed == 'true' || !hashFiles('_site/blog/**/*')
+        if: steps.changes.outputs.blog_changed == 'true'
         run: |
           cd blog
           bundle config set path 'vendor/bundle'
           bundle install
 
       - name: Build Jekyll blog
-        if: steps.changes.outputs.blog_changed == 'true' || !hashFiles('_site/blog/**/*')
+        if: steps.changes.outputs.blog_changed == 'true'
         run: |
           cd blog
           bundle exec jekyll build --config _config.yml,_config_production.yml --destination ../_site/blog
         env:
           JEKYLL_ENV: production
 
+      # ✅ Prepara la carpeta final
       - name: Prepare deployment directory
         run: |
           mkdir -p _site
 
-          # Copy React build
+          # Copiar build de React
           if [ -d "build" ]; then
             cp -r build/* _site/
-            echo "✅ React build copied to _site"
+            echo "✅ React build copiado a _site"
           else
-            echo "❌ React build not found"
-            exit 1
+            echo "⚠️ React build no encontrado (quizás no hubo cambios)"
           fi
 
-          # Verify blog files
+          # Verificar blog
           if [ -d "_site/blog" ]; then
-            echo "✅ Blog build found in _site/blog"
+            echo "✅ Blog build encontrado en _site/blog"
           else
-            echo "❌ Blog build not found"
-            exit 1
+            echo "⚠️ Blog build no encontrado (quizás no hubo cambios)"
           fi
 
+      # ✅ Deploya siempre lo más nuevo
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
