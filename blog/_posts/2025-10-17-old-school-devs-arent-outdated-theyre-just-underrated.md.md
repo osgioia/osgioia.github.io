@@ -34,7 +34,7 @@ Learning a new syntax? That’s the easy part.
 ## Reinventing the Wheel (Because You Had To)
 
 What most people don’t realize is that **legacy devs had to reinvent everything**.  
-In environments like COBOL or Progress, there were no libraries, no frameworks, no “npm install something-that-solves-it-for-me”.  
+In environments like COBOL or Progress 4GL, there were no libraries, no frameworks, no “npm install something-that-solves-it-for-me”.  
 
 If you needed to parse a JSON file, you couldn’t just do `import json`.  
 **You had to build the damn parser yourself.**  
