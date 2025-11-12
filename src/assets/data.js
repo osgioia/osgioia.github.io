@@ -1,5 +1,5 @@
 import React from "react";
-import { FaRegSun, FaCode, FaCloud } from "react-icons/fa";
+import { FaRegSun, FaCode, FaCloud, FaDatabase, FaUserTie } from "react-icons/fa";
 
 const BOOTSTRAP_FOR_SKILL_ICON = "text-4xl mx-auto inline-block";
 const data = {
@@ -7,14 +7,14 @@ const data = {
   title: "Senior Software Engineer",
   social: {
     github: "https://github.com/osgioia",
-    linkedln: "https://www.linkedin.com/in/osvaldogioia/",
+    linkedin: "https://www.linkedin.com/in/osvaldogioia/",
     twitter: "https://x.com/aioigzo",
     email: "contact@osgioia.dev",
   },
   about: {
     title: "My Background",
     description:
-      "Well-qualified Full Stack Developer and experienced Team Leader, hailing from Argentina. I bring over 12 years of expertise in backend development, specializing in Python, JavaScript, TypeScript, SQL, and NoSQL databases. Proficient in cloud platforms like AWS, Azure, and GCP, I possess comprehensive knowledge of programming utilities and languages, enabling smooth handling of both backend and frontend development requirements. A collaborative team player with excellent technical abilities, I excel in guiding teams to success while ensuring seamless project execution. ",
+      "Experienced Senior Node.js Backend Developer with 14+ years of expertise in Node.js, JavaScript, TypeScript, AWS, SQL, and NoSQL databases. Adept at architecting reusable components, optimizing performance, and ensuring security. I possess comprehensive knowledge of programming utilities and languages, enabling smooth handling of both backend and frontend development requirements. I excel in guiding teams to success while ensuring seamless project execution. I am eager to contribute my expertise to drive high-performance application development.",
   },
   skills: [
     {
@@ -28,6 +28,145 @@ const data = {
     {
       skillName: "Cloud Services",
       skillIcon: <FaCloud className={BOOTSTRAP_FOR_SKILL_ICON} />,
+    },
+    {
+      skillName: "Databases",
+      skillIcon: <FaDatabase className={BOOTSTRAP_FOR_SKILL_ICON} />,
+    },
+    {
+      skillName: "Leadership & Mentoring",
+      skillIcon: <FaUserTie className={BOOTSTRAP_FOR_SKILL_ICON} />,
+    },
+  ],
+  techStack: {
+    languages: ["JavaScript", "TypeScript", "C#", "Python", "Java", "CoffeeScript"],
+    frameworks: [
+      "Express",
+      "Serverless Framework",
+      "Flask",
+      "Web2py",
+      "Entity Framework",
+      "React",
+      "Redux",
+      "Sequelize",
+      "Prisma",
+      "Knex.js",
+      "Mongoose",
+      "ASP.NET",
+      "WPF",
+      "Vue.js",
+      "GraphQL"
+    ],
+    testing: ["Jest", "Cypress"],
+    versionControl: ["Git", "Subversion"],
+    databases: [
+      "Progress 4GL",
+      "MS SQL",
+      "MySQL",
+      "Oracle",
+      "Postgres",
+      "Redis",
+      "DynamoDB",
+      "MongoDB",
+      "CouchDB"
+    ],
+    virtualization: ["Docker", "Kubernetes"],
+    clouds: ["AWS", "Azure", "Google Cloud (GCP)"],
+    softSkills: [
+      "Leadership",
+      "Team Collaboration",
+      "Problem-Solving",
+      "Effective Communication",
+      "Time Management",
+      "Adaptability",
+      "Critical Thinking"
+    ],
+  },
+  education: [
+    {
+      institution: "Universidad Tecnológica Nacional",
+      title: "Técnico Superior en Programación",
+      years: "2009 - 2014",
+    },
+    {
+      institution: "Academia ITMaster",
+      title: "Programador Web",
+      years: "2018 - 2019",
+    },
+    {
+      institution: "Amazon Web Services (AWS)",
+      title: "AWS Certified Cloud Practitioner",
+      issued: "Feb 2024",
+    },
+  ],
+  experience: [
+    {
+      company: "FrontSpin",
+      role: "Backend Engineer",
+      period: "Dec 2024 - Present",
+      description: [
+        "Developed a public REST API with rate limiting using Java, Node.js with TypeScript, RabbitMQ, and Webhooks for secure third-party integrations.",
+        "Maintained and enhanced the company’s internal CRM using Java, CoffeeScript, and CouchDB, improving performance and user experience.",
+        "Contributed to an event-driven backend architecture implementing reusable design patterns, automated testing, and secure microservices best practices."
+      ],
+    },
+    {
+      company: "StackZone",
+      role: "Fullstack Engineer",
+      period: "Jun 2022 - Dec 2024",
+      description: [
+        "Designed and developed StackZone, a secure and cost-efficient cloud governance solution with RESTful API architecture.",
+        "Leveraged Node.js, Serverless Framework, AWS Lambda, AWS RDS (Postgres), and ElasticCache (Redis).",
+        "Automated multi-account environments using AWS services, and implemented SQS and SNS for event-driven communication."
+      ],
+    },
+    {
+      company: "Logicalis Latam",
+      role: "Fullstack Engineer",
+      period: "Sep 2021 - Jun 2022",
+      description: [
+        "Designed and delivered scalable software products using .NET Core, Node.js, Vue.js, and cloud platforms (GCP, Azure).",
+        "Worked with Google Calendar and Microsoft Bot Framework APIs."
+      ],
+    },
+    {
+      company: "Grupo Fidelatam",
+      role: "Fullstack Developer / Freelance Consultant",
+      period: "Mar 2021 - Jan 2023",
+      description: [
+        "Delivered scalable loyalty engineering projects using Node.js, React, MongoDB, Sequelize, Postgres, Docker, and GraphQL.",
+        "Migrated monolith applications to microservices architecture with AWS and Kubernetes.",
+        "Collaborated cross-functionally to ensure project success."
+      ],
+    },
+    {
+      company: "Coderhouse",
+      role: "Tutor Backend Node.js",
+      period: "Sep 2021 - Dec 2021",
+      description: [
+        "Tutored students in backend concepts, emphasizing Node.js, Express, Knex.js, and Postgres best practices.",
+        "Provided feedback and project guidance for skill development."
+      ],
+    },
+    {
+      company: "Do Until Plus",
+      role: "Full Stack Developer",
+      period: "Oct 2014 - Dec 2020",
+      description: [
+        "Developed project plans and contributed ideas to enhance software products.",
+        "Worked with .NET Framework, MS SQL, and Node.js to ensure integration and functionality.",
+        "Integrated Google APIs for email automation."
+      ],
+    },
+    {
+      company: "Close Up International",
+      role: "Program Analyst",
+      period: "Aug 2013 - Nov 2020",
+      description: [
+        "Solved program issues with in-depth analysis and modernization of legacy codebases.",
+        "Used Progress 4GL OpenEdge for data modeling and analysis.",
+        "Reduced operating costs and improved performance by updating old systems."
+      ],
     },
   ],
   projects: [
@@ -59,7 +198,7 @@ const data = {
         "aws",
         "serverless framework",
       ],
-      link: "https://github.com/osgioia/node-tracker"
+      link: "https://github.com/osgioia/step-functions-gateway"
     },
     {
       title: "bot-menus-QnAMaker",
@@ -71,7 +210,7 @@ const data = {
         "azure",
         "bot framework",
       ],
-      link: "https://github.com/osgioia/node-tracker"
+      link: "https://github.com/osgioia/bot-menus-QnAMaker"
     }
   ]
 };

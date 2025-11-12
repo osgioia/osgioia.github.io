@@ -5,60 +5,70 @@ name: Update Blog Only
 on:
   push:
     branches: [ main ]
-    paths: 
+    paths:
       - 'blog/**'
-      - '!blog/vendor/**'  # Ignore vendor directory
+      - '!blog/vendor/**'  # Ignorar dependencias locales
 
 jobs:
   update-blog:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.0'
-        bundler-cache: true
-        working-directory: ./blog
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true
+          working-directory: ./blog
 
-    - name: Install Jekyll dependencies
-      run: |
-        cd blog
-        bundle config set path 'vendor/bundle'
-        bundle install
+      - name: Install Jekyll dependencies
+        run: |
+          cd blog
+          bundle config set path 'vendor/bundle'
+          bundle install
 
-    - name: Download previous React build
-      uses: actions/download-artifact@v3
-      with:
-        name: react-build
-        path: build
-      continue-on-error: true
+      # ✅ Actualizado a v4 (v3 está deprecado)
+      - name: Download previous React build (optional)
+        uses: actions/download-artifact@v4
+        with:
+          name: react-build
+          path: build
+        continue-on-error: true
 
-    - name: Build Jekyll blog
-      run: |
-        cd blog
-        bundle exec jekyll build --config _config.yml,_config_production.yml --destination ../_site/blog
-      env:
-        JEKYLL_ENV: production
+      - name: Build Jekyll blog
+        run: |
+          cd blog
+          bundle exec jekyll build --config _config.yml,_config_production.yml --destination ../_site/blog
+        env:
+          JEKYLL_ENV: production
 
-    - name: Prepare deployment
-      run: |
-        mkdir -p _site
-        
-        # Use existing React build or create placeholder
-        if [ -d "build" ]; then
-          cp -r build/* _site/
-        else
-          # Fetch current site and extract React part
-          curl -s https://osgioia.dev > _site/index.html || echo "Could not fetch existing site"
-        fi
+      - name: Prepare deployment
+        run: |
+          mkdir -p _site
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
-        cname: osgioia.dev
+          # Si hay una build previa de React, se copia
+          if [ -d "build" ]; then
+            cp -r build/* _site/
+            echo "✅ React build encontrada y copiada"
+          else
+            echo "⚠️ No se encontró build de React, descargando desde el sitio actual..."
+            curl -sL https://osgioia.dev -o _site/index.html || echo "❌ No se pudo recuperar el sitio existente"
+          fi
+
+          # Verifica que el blog esté generado
+          if [ -d "_site/blog" ]; then
+            echo "✅ Blog build generado correctamente"
+          else
+            echo "❌ No se encontró _site/blog"
+            exit 1
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          cname: osgioia.dev
