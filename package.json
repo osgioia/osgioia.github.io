@@ -5,18 +5,18 @@
   "homepage": ".",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "aos": "^2.3.4",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-github-btn": "^1.2.0",
-    "react-icons": "^3.11.0",
+    "react-icons": "^5.4.0",
     "react-scripts": "5.0.1"
   },
   "scripts": {
-    "start": "npm run watch:css && react-scripts --openssl-legacy-provider start",
+    "start": "npm run build:css && concurrently \"npm run watch:css\" \"react-scripts --openssl-legacy-provider start\"",
     "build": "npm run build:css && react-scripts --openssl-legacy-provider build",
     "build:css": "postcss src/assets/tailwind.css -o src/assets/main.css",
     "watch:css": "postcss src/assets/tailwind.css -o src/assets/main.css --watch",
@@ -40,10 +40,12 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer": "9.8.6",
-    "gh-pages": "^6.1.1",
-    "postcss-cli": "^8.1.0",
-    "tailwindcss": "^1.9.2"
+    "autoprefixer": "^10.4.22",
+    "concurrently": "^9.1.0",
+    "gh-pages": "^6.1.2",
+    "postcss": "^8.4.49",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.4.17"
   },
   "peerDependencies": {
     "postcss": "^8.0.0"
