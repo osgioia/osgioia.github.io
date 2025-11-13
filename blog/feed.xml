@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2025-11-13T13:16:02+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Old-School Devs Aren’t Outdated — They’re Just Underrated</title><link href="https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/" rel="alternate" type="text/html" title="Old-School Devs Aren’t Outdated — They’re Just Underrated" /><published>2025-10-17T15:40:00+00:00</published><updated>2025-10-17T15:40:00+00:00</updated><id>https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md</id><content type="html" xml:base="https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/"><![CDATA[<p>We’ve all heard it: <em>“Knowing COBOL or VB6 doesn’t count anymore.”</em></p>
+
+<p>Funny thing is, people who say that usually forget that <strong>half the world still runs on those technologies</strong> — banks, governments, insurance systems, healthcare, all of it.<br />
+And behind that code are devs who’ve been solving real-world problems for decades, keeping critical systems alive while the rest of us argue about which JavaScript framework is slightly less awful this year.</p>
+
+<p>They’re not outdated. They’re <strong>battle-tested</strong>.</p>
+
+<hr />
+
+<h2 id="the-bootcamp-paradox">The Bootcamp Paradox</h2>
+
+<p>Nothing against bootcamps — they open doors for a lot of people.<br />
+The issue is how the industry <strong>glorifies “modern stacks”</strong> while ignoring experience that actually matters.</p>
+
+<p>A junior who knows React and a bit of Node.js might get more interviews than a dev who spent 20 years optimizing financial systems in COBOL.<br />
+That’s not logic — that’s marketing.</p>
+
+<p>And here’s the twist: the learning curve for an old-school dev picking up modern tech is usually <em>shorter</em>.<br />
+They already understand logic, databases, concurrency, and performance.<br />
+They’ve debugged disasters at 3 AM with no Stack Overflow link to save them.<br />
+Learning a new syntax? That’s the easy part.</p>
+
+<hr />
+
+<h2 id="reinventing-the-wheel-because-you-had-to">Reinventing the Wheel (Because You Had To)</h2>
+
+<p>What most people don’t realize is that <strong>legacy devs had to reinvent everything</strong>.<br />
+In environments like COBOL or Progress 4GL, there were no libraries, no frameworks, no “npm install something-that-solves-it-for-me”.</p>
+
+<p>If you needed to parse a JSON file, you couldn’t just do <code class="language-plaintext highlighter-rouge">import json</code>.<br />
+<strong>You had to build the damn parser yourself.</strong></p>
+
+<p>That teaches a different mindset — you start thinking like an engineer, not just a code implementer.<br />
+You learn to build tools, not just use them.</p>
+
+<p>So when those same devs jump into Node.js, Go, or Python, they adapt fast — because they already understand how things work <em>under the hood</em>.</p>
+
+<hr />
+
+<h2 id="the-bottom-line">The Bottom Line</h2>
+
+<p>Software changes every year, but fundamentals don’t.<br />
+A dev who’s survived multiple tech eras and still stays curious is worth a lot — not for nostalgia, but for what it represents:<br />
+<strong>technical resilience and adaptability.</strong></p>
+
+<p>Those are things no bootcamp can teach in three months.</p>
+
+<hr />]]></content><author><name>Oz Gioia</name></author><category term="opinion" /><category term="devlife" /><category term="legacy" /><category term="bootcamp" /><category term="programming" /><category term="career" /><summary type="html"><![CDATA[Hot take: old-school devs could outlearn most bootcamp grads before lunch — and still have time to fix production.]]></summary></entry><entry><title type="html">Stuff’s Coming (Eventually)</title><link href="https://osgioia.dev/blog/2025/07/29/stuff-coming/" rel="alternate" type="text/html" title="Stuff’s Coming (Eventually)" /><published>2025-07-29T14:05:00+00:00</published><updated>2025-07-29T14:05:00+00:00</updated><id>https://osgioia.dev/blog/2025/07/29/stuff-coming</id><content type="html" xml:base="https://osgioia.dev/blog/2025/07/29/stuff-coming/"><![CDATA[<p>We’ve all heard it: <em>“Big things coming soon!”</em></p>
+
+<p>Usually said by your friend’s indie band that’s been promising a new EP since 2019. Well… welcome to the software version of that.</p>
+
+<p>This blog exists mostly so I can tell myself I’m working on “content” while doing absolutely nothing about it for weeks. But hey — baby steps. At least I set up Jekyll and deployed it. That counts as productivity™.</p>
+
+<h2 id="a-little-disclaimer">A Little Disclaimer</h2>
+
+<p>Everything I write here is <em>heavily</em> altered to protect the innocent (and the legally questionable). Names of companies, products, or people will either be changed or conveniently forgotten — not because I’m polite, but because lawsuits are expensive and I’m not AWS.</p>
+
+<h2 id="what-to-expect-maybe">What To Expect (Maybe)</h2>
+
+<p>Think of this blog as a mix of:</p>
+
+<ul>
+  <li>Tech stuff I found cool, confusing, or downright stupid</li>
+  <li>Personal war stories from working in cloud and backend development</li>
+  <li>The occasional meme in disguise as a “best practice”</li>
+</ul>
+
+<p>Will I post regularly? Who knows.<br />
+Will it be useful? Probably.<br />
+Will it be sarcastic? Absolutely.</p>
+
+<p>So yeah… enjoy it. Or don’t. I’m not your manager.</p>]]></content><author><name>Oz Gioia</name></author><category term="meta" /><category term="blog" /><category term="announcement" /><category term="sarcasm" /><category term="indieDev" /><summary type="html"><![CDATA[You know that thing indie bands always say before ghosting for 8 months? Yeah, that.]]></summary></entry></feed>
