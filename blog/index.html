@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Blog - Oz Gioia Blog</title>
+    <meta name="description" content="Senior Software Engineer blog about development, cloud technologies, and best practices.">
+    
+    <link rel="stylesheet" href="/blog/assets/main.css">
+    <link rel="canonical" href="https://osgioia.dev/blog/">
+    <link rel="alternate" type="application/rss+xml" title="Oz Gioia Blog" href="/blog/feed.xml">
+    
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Blog | Oz Gioia Blog</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Blog" />
+<meta name="author" content="Oz Gioia" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Senior Software Engineer blog about development, cloud technologies, and best practices." />
+<meta property="og:description" content="Senior Software Engineer blog about development, cloud technologies, and best practices." />
+<link rel="canonical" href="https://osgioia.dev/blog/" />
+<meta property="og:url" content="https://osgioia.dev/blog/" />
+<meta property="og:site_name" content="Oz Gioia Blog" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Blog" />
+<meta name="twitter:site" content="@aioigzo" />
+<meta name="twitter:creator" content="@Oz Gioia" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","author":{"@type":"Person","name":"Oz Gioia"},"description":"Senior Software Engineer blog about development, cloud technologies, and best practices.","headline":"Blog","name":"Oz Gioia","sameAs":["https://twitter.com/aioigzo","https://www.linkedin.com/in/osvaldogioia","https://github.com/osgioia"],"url":"https://osgioia.dev/blog/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    
+    <script>
+        // Dark mode toggle functionality
+        function initDarkMode() {
+            const savedTheme = localStorage.getItem('blog-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('blog-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('blog-theme', 'dark');
+            }
+        }
+        
+        // Initialize on page load
+        initDarkMode();
+    </script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="wrapper">
+            <nav class="site-nav">
+                <a class="site-title" href="/blog/">Oz Gioia Blog</a>
+                <div class="nav-links">
+                    <a href="/blog/">Home</a>
+                    <a href="https://osgioia.dev">Portfolio</a>
+                    <button onclick="toggleDarkMode()" class="dark-mode-toggle" aria-label="Toggle dark mode">
+                        <span class="sun-icon">☀️</span>
+                        <span class="moon-icon">🌙</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="wrapper">
+            <div class="home">
+    <h1 class="page-heading">Blog</h1>
+    
+    <p>Welcome to my blog! This is where I dump thoughts, random curiosities, and the occasional war story from surviving the world of software development and cloud chaos.</p>
+
+<p>I write about:</p>
+<ul>
+  <li><strong>Backend Development</strong>:  Python, JavaScript, TypeScript, and the joy of debugging something that “shouldn’t be possible”</li>
+  <li><strong>Cloud Technologies</strong>: WS, Azure, GCP, and all the serverless magic that usually comes with a hidden bill</li>
+  <li><strong>DevOps</strong>: CI/CD, infrastructure as code, automation—and trying to make sense of YAML at 2AM</li>
+  <li><strong>Curiosities &amp; past experiences</strong>: weird bugs, lessons I wish I’d learned earlier, and things that looked like a good idea at the time</li>
+</ul>
+
+
+    <div class="post-list">
+        
+        <article class="post-preview">
+            <h2 class="post-title">
+                <a href="/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/">Old-School Devs Aren’t Outdated — They’re Just Underrated</a>
+            </h2>
+            <p class="post-meta">
+                <time datetime="2025-10-17T15:40:00+00:00">October 17, 2025</time>
+            </p>
+            <div class="post-excerpt">
+                Hot take: old-school devs could outlearn most bootcamp grads before lunch — and still have time to fix production.
+            </div>
+            <div class="post-tags">
+                
+                <span class="tag">legacy</span>
+                
+                <span class="tag">bootcamp</span>
+                
+                <span class="tag">programming</span>
+                
+                <span class="tag">career</span>
+                
+            </div>
+            <a href="/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/" class="read-more">Read more →</a>
+        </article>
+        
+        <article class="post-preview">
+            <h2 class="post-title">
+                <a href="/blog/2025/07/29/stuff-coming/">Stuff&#39;s Coming (Eventually)</a>
+            </h2>
+            <p class="post-meta">
+                <time datetime="2025-07-29T14:05:00+00:00">July 29, 2025</time>
+            </p>
+            <div class="post-excerpt">
+                You know that thing indie bands always say before ghosting for 8 months? Yeah, that.
+            </div>
+            <div class="post-tags">
+                
+                <span class="tag">announcement</span>
+                
+                <span class="tag">sarcasm</span>
+                
+                <span class="tag">indieDev</span>
+                
+            </div>
+            <a href="/blog/2025/07/29/stuff-coming/" class="read-more">Read more →</a>
+        </article>
+        
+    </div>
+</div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrapper">
+            <div class="footer-content">
+                <p>&copy; 2025 Oz Gioia Blog. Built with Jekyll.</p>
+                <div class="social-links">
+                    <a href="https://github.com/osgioia" target="_blank">GitHub</a>
+                    <a href="https://www.linkedin.com/in/osvaldogioia/" target="_blank">LinkedIn</a>
+                    <a href="https://x.com/aioigzo" target="_blank">Twitter</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
