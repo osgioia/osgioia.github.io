@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -14,19 +15,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       # ✅ Detecta cambios correctamente
       - name: Check for changes
         id: changes
+        shell: bash
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|tailwind\.js|postcss\.config\.js)' > /dev/null; then
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual trigger detected; forcing rebuild"
+            echo "react_changed=true" >> "$GITHUB_OUTPUT"
+            echo "blog_changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+          fi
+
+          if [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA="$(git rev-list --max-parents=0 "$HEAD_SHA")"
+          fi
+
+          echo "Comparing $BASE_SHA to $HEAD_SHA"
+
+          DIFF_OUTPUT="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"
+
+          if echo "$DIFF_OUTPUT" | grep -E '^(src/|public/|package\.json|tailwind\.js|postcss\.config\.js)' > /dev/null; then
             echo "react_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "react_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          if git diff --name-only HEAD~1 HEAD | grep -E '^blog/' > /dev/null; then
+          if echo "$DIFF_OUTPUT" | grep -E '^blog/' > /dev/null; then
             echo "blog_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "blog_changed=false" >> "$GITHUB_OUTPUT"

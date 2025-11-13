@@ -8,6 +8,7 @@ on:
     paths:
       - 'blog/**'
       - '!blog/vendor/**'  # Ignorar dependencias locales
+  workflow_dispatch:
 
 jobs:
   update-blog:
