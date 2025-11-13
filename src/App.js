@@ -6,6 +6,8 @@ import Card from "./partials/Card";
 import Footer from "./partials/Footer";
 import Projects from "./partials/Projects";
 import Skills from "./partials/Skills";
+import Education from "./partials/Education";
+import Experience from "./partials/Experience";
 import DarkModeToggle from "./partials/DarkModeToggle";
 import data from "./assets/data";
 import AOS from "aos";
@@ -26,6 +28,8 @@ function App() {
       <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
         <About title={data.about.title} description={data.about.description} />
         <Skills skills={data.skills} />
+        <Education education={data.education} />
+        <Experience experience={data.experience} />
         <Projects projects={data.projects} />
         <Footer github={data.social.github} />
       </div>
