@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2025-12-23T18:00:46+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">React Portfolio + Jekyll Blog: Linking Them with GitHub Actions</title><link href="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/" rel="alternate" type="text/html" title="React Portfolio + Jekyll Blog: Linking Them with GitHub Actions" /><published>2025-12-23T18:00:00+00:00</published><updated>2025-12-23T18:00:00+00:00</updated><id>https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll</id><content type="html" xml:base="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/"><![CDATA[<p>Maintaining a personal portfolio is often a dilemma: you want the flexibility of <strong>React</strong> to create an interactive and modern landing page, but for writing content, nothing beats the simplicity of a Markdown-based static site generator like <strong>Jekyll</strong>.</p>
+
+<p>Why choose one when you can have both? In this post, I’ll show you how I configured my site so that the portfolio lives at the root (<code class="language-plaintext highlighter-rouge">/</code>) and the blog in a sub-path (<code class="language-plaintext highlighter-rouge">/blog</code>), using <strong>GitHub Actions</strong> to make the magic happen on its own.</p>
+
+<hr />
+
+<h2 id="the-project-structure">The Project Structure</h2>
+
+<p>The biggest challenge was organizing the files so they wouldn’t overlap. My structure looks like this:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.
+├── .github/workflows/   &lt;-- Where the CI/CD configuration lives
+├── blog/                &lt;-- The entire Jekyll site
+│   ├── _posts/
+│   ├── _config.yml
+│   └── index.md
+├── src/                 &lt;-- React source code (living at the root)
+├── public/              &lt;-- React static assets
+├── package.json         &lt;-- React dependencies
+└── tailwind.config.js
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="configuring-jekyll-for-a-sub-path">Configuring Jekyll for a Sub-path</h2>
+
+<p>For Jekyll to know it won’t be at the root of the domain, we need to adjust the <code class="language-plaintext highlighter-rouge">_config.yml</code>. This is vital so that the generated file paths don’t break:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># blog/_config.yml</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">My Blog</span>
+<span class="na">baseurl</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/blog"</span> <span class="c1"># &lt;--- Vital to serve from my-domain.com/blog</span>
+<span class="na">url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">https://osgioia.dev"</span>
+</code></pre></div></div>
+
+<p>This ensures that all internal links and Jekyll CSS files are correctly served from <code class="language-plaintext highlighter-rouge">/blog/assets/...</code>.</p>
+
+<hr />
+
+<h2 id="the-magic-github-actions">The Magic: GitHub Actions</h2>
+
+<p>This is where the real integration happens. We need a workflow that detects what changed and builds only what’s necessary.</p>
+
+<h3 id="1-smart-change-detection">1. Smart Change Detection</h3>
+<p>We don’t want to build React if we only wrote a Markdown post. We use a bash script in the workflow to detect affected directories:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check for changes</span>
+  <span class="na">id</span><span class="pi">:</span> <span class="s">changes</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">DIFF_OUTPUT="$(git diff --name-only $ $)"</span>
+    
+    <span class="s">if echo "$DIFF_OUTPUT" | grep -E '^(src/|public/|package\.json)' &gt; /dev/null; then</span>
+      <span class="s">echo "react_changed=true" &gt;&gt; "$GITHUB_OUTPUT"</span>
+    <span class="s">fi</span>
+
+    <span class="s">if echo "$DIFF_OUTPUT" | grep -E '^blog/' &gt; /dev/null; then</span>
+      <span class="s">echo "blog_changed=true" &gt;&gt; "$GITHUB_OUTPUT"</span>
+    <span class="s">fi</span>
+</code></pre></div></div>
+
+<h3 id="2-conditional-builds">2. Conditional Builds</h3>
+<p>Then, we use that output to run build steps only when needed:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># React Build (only if frontend changed)</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Build React portfolio</span>
+  <span class="na">if</span><span class="pi">:</span> <span class="s">steps.changes.outputs.react_changed == 'true'</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">npm ci</span>
+    <span class="s">npm run build</span>
+
+<span class="c1"># Jekyll Build (only if blog changed)</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Build Jekyll blog</span>
+  <span class="na">if</span><span class="pi">:</span> <span class="s">steps.changes.outputs.blog_changed == 'true'</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">cd blog</span>
+    <span class="s">bundle exec jekyll build --destination ../_site/blog</span>
+</code></pre></div></div>
+
+<h3 id="3-merging-the-sites">3. Merging the Sites</h3>
+<p>The final step is to merge both results into a single <code class="language-plaintext highlighter-rouge">_site</code> folder that GitHub Pages can serve:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Prepare deployment directory</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">mkdir -p _site</span>
+    
+    <span class="s"># Copy React build (goes to the root /)</span>
+    <span class="s">if [ -d "build" ]; then</span>
+      <span class="s">cp -r build/* _site/</span>
+    <span class="s">fi</span>
+
+    <span class="s"># The Jekyll build was already done inside _site/blog/</span>
+    <span class="s"># so the final structure is perfect.</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="why-this-solution">Why This Solution?</h2>
+
+<ul>
+  <li><strong>React for UX</strong>: My landing page uses animations and dynamic components.</li>
+  <li><strong>Jekyll for SEO</strong>: Blog posts are pure static HTML, perfect for indexing.</li>
+  <li><strong>Zero Cost</strong>: The best part is that <strong>all of this is 100% free</strong>. GitHub Pages hosts the site at no cost, and GitHub Actions gives us free execution minutes to build the code every time we push.</li>
+</ul>
+
+<p>I hope this technical breakdown helps you set up your own “Frankenstein” of web technologies without spending a single cent!</p>]]></content><author><name>Oz Gioia</name></author><category term="dev" /><category term="tutorial" /><category term="react" /><category term="jekyll" /><category term="github-actions" /><category term="github-pages" /><summary type="html"><![CDATA[Learn how to set up a hybrid site with React for your landing page and Jekyll for your blog, all automatically deployed to a single GitHub Pages URL.]]></summary></entry><entry><title type="html">Old-School Devs Aren’t Outdated — They’re Just Underrated</title><link href="https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/" rel="alternate" type="text/html" title="Old-School Devs Aren’t Outdated — They’re Just Underrated" /><published>2025-10-17T15:40:00+00:00</published><updated>2025-10-17T15:40:00+00:00</updated><id>https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md</id><content type="html" xml:base="https://osgioia.dev/blog/2025/10/17/old-school-devs-arent-outdated-theyre-just-underrated.md/"><![CDATA[<p>We’ve all heard it: <em>“Knowing COBOL or VB6 doesn’t count anymore.”</em></p>
+
+<p>Funny thing is, people who say that usually forget that <strong>half the world still runs on those technologies</strong> — banks, governments, insurance systems, healthcare, all of it.<br />
+And behind that code are devs who’ve been solving real-world problems for decades, keeping critical systems alive while the rest of us argue about which JavaScript framework is slightly less awful this year.</p>
+
+<p>They’re not outdated. They’re <strong>battle-tested</strong>.</p>
+
+<hr />
+
+<h2 id="the-bootcamp-paradox">The Bootcamp Paradox</h2>
+
+<p>Nothing against bootcamps — they open doors for a lot of people.<br />
+The issue is how the industry <strong>glorifies “modern stacks”</strong> while ignoring experience that actually matters.</p>
+
+<p>A junior who knows React and a bit of Node.js might get more interviews than a dev who spent 20 years optimizing financial systems in COBOL.<br />
+That’s not logic — that’s marketing.</p>
+
+<p>And here’s the twist: the learning curve for an old-school dev picking up modern tech is usually <em>shorter</em>.<br />
+They already understand logic, databases, concurrency, and performance.<br />
+They’ve debugged disasters at 3 AM with no Stack Overflow link to save them.<br />
+Learning a new syntax? That’s the easy part.</p>
+
+<hr />
+
+<h2 id="reinventing-the-wheel-because-you-had-to">Reinventing the Wheel (Because You Had To)</h2>
+
+<p>What most people don’t realize is that <strong>legacy devs had to reinvent everything</strong>.<br />
+In environments like COBOL or Progress 4GL, there were no libraries, no frameworks, no “npm install something-that-solves-it-for-me”.</p>
+
+<p>If you needed to parse a JSON file, you couldn’t just do <code class="language-plaintext highlighter-rouge">import json</code>.<br />
+<strong>You had to build the damn parser yourself.</strong></p>
+
+<p>That teaches a different mindset — you start thinking like an engineer, not just a code implementer.<br />
+You learn to build tools, not just use them.</p>
+
+<p>So when those same devs jump into Node.js, Go, or Python, they adapt fast — because they already understand how things work <em>under the hood</em>.</p>
+
+<hr />
+
+<h2 id="the-bottom-line">The Bottom Line</h2>
+
+<p>Software changes every year, but fundamentals don’t.<br />
+A dev who’s survived multiple tech eras and still stays curious is worth a lot — not for nostalgia, but for what it represents:<br />
+<strong>technical resilience and adaptability.</strong></p>
+
+<p>Those are things no bootcamp can teach in three months.</p>
+
+<hr />]]></content><author><name>Oz Gioia</name></author><category term="opinion" /><category term="devlife" /><category term="legacy" /><category term="bootcamp" /><category term="programming" /><category term="career" /><summary type="html"><![CDATA[Hot take: old-school devs could outlearn most bootcamp grads before lunch — and still have time to fix production.]]></summary></entry><entry><title type="html">Stuff’s Coming (Eventually)</title><link href="https://osgioia.dev/blog/2025/07/29/stuff-coming/" rel="alternate" type="text/html" title="Stuff’s Coming (Eventually)" /><published>2025-07-29T14:05:00+00:00</published><updated>2025-07-29T14:05:00+00:00</updated><id>https://osgioia.dev/blog/2025/07/29/stuff-coming</id><content type="html" xml:base="https://osgioia.dev/blog/2025/07/29/stuff-coming/"><![CDATA[<p>We’ve all heard it: <em>“Big things coming soon!”</em></p>
+
+<p>Usually said by your friend’s indie band that’s been promising a new EP since 2019. Well… welcome to the software version of that.</p>
+
+<p>This blog exists mostly so I can tell myself I’m working on “content” while doing absolutely nothing about it for weeks. But hey — baby steps. At least I set up Jekyll and deployed it. That counts as productivity™.</p>
+
+<h2 id="a-little-disclaimer">A Little Disclaimer</h2>
+
+<p>Everything I write here is <em>heavily</em> altered to protect the innocent (and the legally questionable). Names of companies, products, or people will either be changed or conveniently forgotten — not because I’m polite, but because lawsuits are expensive and I’m not AWS.</p>
+
+<h2 id="what-to-expect-maybe">What To Expect (Maybe)</h2>
+
+<p>Think of this blog as a mix of:</p>
+
+<ul>
+  <li>Tech stuff I found cool, confusing, or downright stupid</li>
+  <li>Personal war stories from working in cloud and backend development</li>
+  <li>The occasional meme in disguise as a “best practice”</li>
+</ul>
+
+<p>Will I post regularly? Who knows.<br />
+Will it be useful? Probably.<br />
+Will it be sarcastic? Absolutely.</p>
+
+<p>So yeah… enjoy it. Or don’t. I’m not your manager.</p>]]></content><author><name>Oz Gioia</name></author><category term="meta" /><category term="blog" /><category term="announcement" /><category term="sarcasm" /><category term="indieDev" /><summary type="html"><![CDATA[You know that thing indie bands always say before ghosting for 8 months? Yeah, that.]]></summary></entry></feed>
