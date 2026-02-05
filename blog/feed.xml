@@ -1,4 +1,160 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2025-12-23T18:04:55+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">React Portfolio + Jekyll Blog: Linking Them with GitHub Actions</title><link href="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/" rel="alternate" type="text/html" title="React Portfolio + Jekyll Blog: Linking Them with GitHub Actions" /><published>2025-12-23T18:00:00+00:00</published><updated>2025-12-23T18:00:00+00:00</updated><id>https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll</id><content type="html" xml:base="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/"><![CDATA[<p>Maintaining a personal portfolio is often a dilemma: you want the flexibility of <strong>React</strong> to create an interactive and modern landing page, but for writing content, nothing beats the simplicity of a Markdown-based static site generator like <strong>Jekyll</strong>.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-02-05T21:31:57+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Is It Already Dead? Or Can Something Be Saved?</title><link href="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/" rel="alternate" type="text/html" title="Is It Already Dead? Or Can Something Be Saved?" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved</id><content type="html" xml:base="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/"><![CDATA[<p>In 2011, I walked into a job interview for a developer position.<br />
+When they asked if I knew <em>Progress</em>, I said yes — thinking they meant <strong>PostgreSQL</strong>.</p>
+
+<p>They didn’t.<br />
+It wasn’t.<br />
+And that misunderstanding ended up shaping an entire chapter of my career.</p>
+
+<p>What started as confusion became my primary development environment for years. While the tech world talked about open stacks, huge communities, and fast-moving ecosystems, I stepped into a parallel universe where almost everything revolved around a single platform, a single vendor, and a very particular way of thinking about software.</p>
+
+<p>For a long time, I saw it as a disadvantage. Today, I see it as an uncomfortable but important part of how I grew as an engineer.</p>
+
+<hr />
+
+<h2 id="the-parallel-world">The Parallel World</h2>
+
+<p>Working with Progress OpenEdge wasn’t just using a different database or language. It meant entering a complete ecosystem — fairly closed, with its own tools, rules, and philosophy.</p>
+
+<p>While the outside world was discussing:</p>
+
+<ul>
+  <li>REST APIs</li>
+  <li>microservices</li>
+  <li>open-source communities</li>
+  <li>stacks evolving every year</li>
+</ul>
+
+<p>I was working with:</p>
+
+<ul>
+  <li>ABL</li>
+  <li>AppServers</li>
+  <li>a database tightly coupled to the language</li>
+  <li>and a much smaller, quieter community</li>
+</ul>
+
+<p>The constant feeling was being <em>outside the global tech conversation</em>. Not because we weren’t building real systems — we were — but because we were doing it on an island.</p>
+
+<hr />
+
+<h2 id="the-frustration-and-what-wasnt-said">The Frustration (and What Wasn’t Said)</h2>
+
+<p>Some things weighed heavily:</p>
+
+<ul>
+  <li>Documentation that was hard to navigate</li>
+  <li>A small community to learn from</li>
+  <li>Strong vendor lock-in</li>
+  <li>Difficulty translating that experience into the broader job market</li>
+  <li>A pace of evolution that didn’t match what was happening outside</li>
+</ul>
+
+<p>This wasn’t just a technical issue. It was professional.<br />
+You felt like you were growing — but along an axis the rest of the industry barely noticed.</p>
+
+<p>For years, I thought the problem was the technology itself.</p>
+
+<p>Eventually, I realized it wasn’t that simple.</p>
+
+<hr />
+
+<h2 id="the-uncomfortable-part-to-admit">The Uncomfortable Part to Admit</h2>
+
+<p>ABL had good ideas.</p>
+
+<p>It took me years to say that without resistance.</p>
+
+<p>Statements like:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">FOR EACH</code></li>
+  <li><code class="language-plaintext highlighter-rouge">FIND FIRST</code></li>
+  <li>record buffers</li>
+  <li>the tight integration between business logic and data access</li>
+</ul>
+
+<p>were incredibly comfortable for certain types of applications. For record-oriented business logic, they often felt more natural and expressive than writing raw SQL mixed with another language.</p>
+
+<p>It wasn’t technical incompetence.<br />
+It was a different mental model.</p>
+
+<p>The problem wasn’t the paradigm.</p>
+
+<p>The problem was <strong>isolation</strong>.</p>
+
+<hr />
+
+<h2 id="it-didnt-die-for-being-useless--it-drifted-away">It Didn’t Die for Being Useless — It Drifted Away</h2>
+
+<p>Over time, I noticed something: many technologies don’t disappear because they’re bad. They fade because they no longer belong to the ecosystem where the industry moves.</p>
+
+<p>Progress OpenEdge became trapped in:</p>
+
+<ul>
+  <li>a small community</li>
+  <li>strong vendor dependency</li>
+  <li>limited integration with the open world</li>
+  <li>difficulty evolving at the pace of the broader market</li>
+</ul>
+
+<p>That doesn’t invalidate the ideas.<br />
+But it does affect survival.</p>
+
+<p>This wasn’t a technical collapse.<br />
+It was an ecosystem and cultural mismatch.</p>
+
+<hr />
+
+<h2 id="the-transition">The Transition</h2>
+
+<p>When I started working with other technologies — Node, cloud platforms, modern architectures — I didn’t stop comparing everything to what I had seen in ABL.</p>
+
+<p>But the tone changed. It wasn’t frustration anymore. It was curiosity:</p>
+
+<blockquote>
+  <p><em>What if these ideas existed in an open environment?</em><br />
+<em>What if a data-oriented language model wasn’t tied to a single vendor?</em></p>
+</blockquote>
+
+<p>I realized something important:<br />
+I didn’t want to escape what I had learned. I wanted to reinterpret it.</p>
+
+<hr />
+
+<h2 id="liteabl-not-a-replacement-but-closure">LiteABL: Not a Replacement, but Closure</h2>
+
+<p>Building a PoC runtime inspired by ABL ideas didn’t come from anger or nostalgia. It came from technical curiosity and a personal need for closure.</p>
+
+<p>It’s not a competitor.<br />
+It’s not a replacement.<br />
+It’s not a commercial product.</p>
+
+<p>It’s a question written in code.</p>
+
+<p>If you’re curious, the experiment lives here:<br />
+👉 https://github.com/osgioia/liteabl/</p>
+
+<blockquote>
+  <p><em>Can we keep the ideas without carrying the closed ecosystem around them?</em></p>
+</blockquote>
+
+<p>For me, this project isn’t the beginning of something. It’s the end of something.</p>
+
+<hr />
+
+<h2 id="closing-a-chapter">Closing a Chapter</h2>
+
+<p>Progress was my technical school, even when I wanted to leave it. It forced me to think differently, to understand models that weren’t trendy, to solve problems in a context I didn’t choose but that still shaped me.</p>
+
+<p>Today, I don’t want to stay there.<br />
+But I also don’t want to pretend it didn’t matter.</p>
+
+<p>That misunderstanding in a 2011 interview ended up defining years of my professional life. LiteABL isn’t a rebellion against that past. It’s my way of closing the cycle while understanding everything that happened along the way.</p>
+
+<p>Maybe the product is in decline.<br />
+But the ideas were never worthless.</p>
+
+<p>And I carried some of them with me.</p>]]></content><author><name>Oz Gioia</name></author><category term="progress" /><category term="openedge" /><category term="abl" /><category term="legacy" /><category term="software-architecture" /><category term="career" /><summary type="html"><![CDATA[In 2011, I walked into a job interview for a developer position. When they asked if I knew Progress, I said yes — thinking they meant PostgreSQL.]]></summary></entry><entry><title type="html">React Portfolio + Jekyll Blog: Linking Them with GitHub Actions</title><link href="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/" rel="alternate" type="text/html" title="React Portfolio + Jekyll Blog: Linking Them with GitHub Actions" /><published>2025-12-23T18:00:00+00:00</published><updated>2025-12-23T18:00:00+00:00</updated><id>https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll</id><content type="html" xml:base="https://osgioia.dev/blog/2025/12/23/portfolio-react-blog-jekyll/"><![CDATA[<p>Maintaining a personal portfolio is often a dilemma: you want the flexibility of <strong>React</strong> to create an interactive and modern landing page, but for writing content, nothing beats the simplicity of a Markdown-based static site generator like <strong>Jekyll</strong>.</p>
 
 <p>Why choose one when you can have both? In this post, I’ll show you how I configured my site so that the portfolio lives at the root (<code class="language-plaintext highlighter-rouge">/</code>) and the blog in a sub-path (<code class="language-plaintext highlighter-rouge">/blog</code>), using <strong>GitHub Actions</strong> to make the magic happen on its own.</p>
 
