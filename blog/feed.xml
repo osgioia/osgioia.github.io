@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-03-26T01:20:32+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">How I Broke Better Player (Without Actually Replacing It)</title><link href="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/" rel="alternate" type="text/html" title="How I Broke Better Player (Without Actually Replacing It)" /><published>2026-03-25T00:00:00+00:00</published><updated>2026-03-25T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack</id><content type="html" xml:base="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/"><![CDATA[<p>I started the weekend with a simple idea:</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-03-26T01:36:10+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">How I Broke Better Player (Without Actually Replacing It)</title><link href="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/" rel="alternate" type="text/html" title="How I Broke Better Player (Without Actually Replacing It)" /><published>2026-03-25T00:00:00+00:00</published><updated>2026-03-25T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack</id><content type="html" xml:base="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/"><![CDATA[<p>I started the weekend with a simple idea:</p>
 
 <blockquote>
   <p>“I’ll tweak an open source IPTV Flutter project a bit and call it a day.”</p>
@@ -134,15 +134,197 @@ Yes, it works.</p>
 
 <hr />
 
-<h2 id="the-result">The Result</h2>
+<h2 id="suddenly-audio-tracks-exist">Suddenly… Audio Tracks Exist</h2>
+
+<p>Once I had the real ExoPlayer:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">exoPlayer</span><span class="p">.</span><span class="n">currentTracks</span><span class="p">.</span><span class="n">groups</span>
+    <span class="p">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">type</span> <span class="p">==</span> <span class="nc">C</span><span class="p">.</span><span class="nc">TRACK_TYPE_AUDIO</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>And just like that:</p>
+
+<p>👉 all audio tracks showed up</p>
+
+<p>They were always there.
+Better Player just didn’t expose them.</p>
+
+<hr />
+
+<p>Selecting one was straightforward:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trackSelector</span><span class="p">.</span><span class="n">parameters</span> <span class="p">=</span> <span class="n">trackSelector</span><span class="p">.</span><span class="nf">buildUponParameters</span><span class="p">()</span>
+    <span class="p">.</span><span class="nf">setOverrideForType</span><span class="p">(</span>
+        <span class="nc">TrackSelectionOverride</span><span class="p">(</span><span class="n">group</span><span class="p">.</span><span class="n">mediaTrackGroup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="p">.</span><span class="nf">build</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>Done.</p>
+
+<hr />
+
+<h2 id="wiring-it-through-mainactivity">Wiring It Through MainActivity</h2>
+
+<p>I exposed this through a MethodChannel.</p>
+
+<p>Now Flutter can:</p>
 
 <ul>
-  <li>Multi-audio ✔️</li>
-  <li>Subtitles ✔️</li>
-  <li>DRM ✔️</li>
+  <li>get audio tracks</li>
+  <li>get subtitle tracks</li>
+  <li>select tracks</li>
+  <li>listen for subtitle cues</li>
 </ul>
 
-<p>Without replacing Better Player.</p>
+<p>Example:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">when</span> <span class="p">(</span><span class="n">call</span><span class="p">.</span><span class="n">method</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="s">"getAudioTracks"</span> <span class="p">-&gt;</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">tracks</span> <span class="p">=</span> <span class="n">exoPlayer</span><span class="p">.</span><span class="n">currentTracks</span><span class="p">.</span><span class="n">groups</span>
+            <span class="p">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">type</span> <span class="p">==</span> <span class="nc">C</span><span class="p">.</span><span class="nc">TRACK_TYPE_AUDIO</span> <span class="p">}</span>
+            <span class="p">.</span><span class="nf">mapIndexed</span> <span class="p">{</span> <span class="n">i</span><span class="p">,</span> <span class="n">group</span> <span class="p">-&gt;</span>
+                <span class="kd">val</span> <span class="py">fmt</span> <span class="p">=</span> <span class="n">group</span><span class="p">.</span><span class="nf">getTrackFormat</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="nf">mapOf</span><span class="p">(</span>
+                    <span class="s">"groupIndex"</span> <span class="n">to</span> <span class="n">i</span><span class="p">,</span>
+                    <span class="s">"language"</span> <span class="nf">to</span> <span class="p">(</span><span class="n">fmt</span><span class="p">.</span><span class="n">language</span> <span class="o">?:</span> <span class="s">"und"</span><span class="p">),</span>
+                    <span class="s">"label"</span> <span class="nf">to</span> <span class="p">(</span><span class="n">fmt</span><span class="p">.</span><span class="n">label</span> <span class="o">?:</span> <span class="s">"Audio $i"</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="n">result</span><span class="p">.</span><span class="nf">success</span><span class="p">(</span><span class="n">tracks</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="s">"selectAudioTrack"</span> <span class="p">-&gt;</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">groupIndex</span> <span class="p">=</span> <span class="n">call</span><span class="p">.</span><span class="n">argument</span><span class="p">&lt;</span><span class="nc">Int</span><span class="p">&gt;(</span><span class="s">"groupIndex"</span><span class="p">)</span><span class="o">!!</span>
+        <span class="kd">val</span> <span class="py">group</span> <span class="p">=</span> <span class="n">audioGroups</span><span class="p">[</span><span class="n">groupIndex</span><span class="p">]</span>
+
+        <span class="n">trackSelector</span><span class="p">.</span><span class="n">parameters</span> <span class="p">=</span> <span class="n">trackSelector</span><span class="p">.</span><span class="nf">buildUponParameters</span><span class="p">()</span>
+            <span class="p">.</span><span class="nf">setOverrideForType</span><span class="p">(</span>
+                <span class="nc">TrackSelectionOverride</span><span class="p">(</span><span class="n">group</span><span class="p">.</span><span class="n">mediaTrackGroup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="p">.</span><span class="nf">build</span><span class="p">()</span>
+
+        <span class="n">result</span><span class="p">.</span><span class="nf">success</span><span class="p">(</span><span class="k">null</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="flutter-side-still-using-better-player">Flutter Side (Still Using Better Player)</h2>
+
+<p>Here’s the funny part:</p>
+
+<p>I didn’t remove Better Player.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">_betterPlayerController</span> <span class="p">=</span> <span class="nc">BetterPlayerController</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+
+<span class="n">_betterPlayerController</span><span class="p">!.</span><span class="nf">setupDataSource</span><span class="p">(</span>
+  <span class="nc">BetterPlayerDataSource</span><span class="p">(</span>
+    <span class="nc">BetterPlayerDataSourceType</span><span class="p">.</span><span class="n">network</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">,</span>
+    <span class="n">videoFormat</span><span class="p">:</span> <span class="nc">BetterPlayerVideoFormat</span><span class="p">.</span><span class="n">dash</span><span class="p">,</span>
+    <span class="n">drmConfiguration</span><span class="p">:</span> <span class="nc">BetterPlayerDrmConfiguration</span><span class="p">(</span>
+      <span class="n">drmType</span><span class="p">:</span> <span class="nc">BetterPlayerDrmType</span><span class="p">.</span><span class="n">clearKey</span><span class="p">,</span>
+      <span class="n">clearKey</span><span class="p">:</span> <span class="n">jwk</span><span class="p">,</span>
+    <span class="p">),</span>
+  <span class="p">),</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>It still handles:</p>
+
+<ul>
+  <li>rendering</li>
+  <li>lifecycle</li>
+  <li>texture management</li>
+</ul>
+
+<p>But now I can fetch native tracks:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">final</span> <span class="n">audios</span> <span class="p">=</span> <span class="n">await</span> <span class="n">_betterPlayerController</span><span class="p">!.</span><span class="nf">getNativeAudioTracks</span><span class="p">();</span>
+<span class="k">final</span> <span class="n">subs</span> <span class="p">=</span> <span class="n">await</span> <span class="n">_betterPlayerController</span><span class="p">!.</span><span class="nf">getNativeSubtitleTracks</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>And render them:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">ListTile</span><span class="p">(</span>
+  <span class="n">title</span><span class="p">:</span> <span class="nc">Text</span><span class="p">(</span><span class="n">track</span><span class="p">[</span><span class="err">'</span><span class="n">label</span><span class="err">'</span><span class="p">]),</span>
+  <span class="n">onTap</span><span class="p">:</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="n">_betterPlayerController</span><span class="p">!</span>
+        <span class="p">.</span><span class="nf">selectNativeAudioTrack</span><span class="p">(</span><span class="n">track</span><span class="p">[</span><span class="err">'</span><span class="n">groupIndex</span><span class="err">'</span><span class="p">]);</span>
+  <span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="subtitles-custom-rendering">Subtitles (Custom Rendering)</h2>
+
+<p>Better Player wasn’t handling subtitles well either.</p>
+
+<p>So I listened directly from ExoPlayer:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">override</span> <span class="k">fun</span> <span class="nf">onCues</span><span class="p">(</span><span class="n">cueGroup</span><span class="p">:</span> <span class="nc">CueGroup</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">text</span> <span class="p">=</span> <span class="n">cueGroup</span><span class="p">.</span><span class="n">cues</span>
+        <span class="p">.</span><span class="nf">mapNotNull</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">text</span><span class="o">?.</span><span class="nf">toString</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">.</span><span class="nf">joinToString</span><span class="p">(</span><span class="s">"\n"</span><span class="p">)</span>
+
+    <span class="n">channel</span><span class="p">.</span><span class="nf">invokeMethod</span><span class="p">(</span><span class="s">"onSubtitleCue"</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Then rendered them in Flutter:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="n">_subtitlesActive</span> <span class="p">&amp;&amp;</span> <span class="n">_currentSubtitle</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">)</span>
+  <span class="nc">Positioned</span><span class="p">(</span>
+    <span class="n">bottom</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
+    <span class="n">child</span><span class="p">:</span> <span class="nc">Text</span><span class="p">(</span><span class="n">_currentSubtitle</span><span class="p">),</span>
+  <span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="what-this-became">What This Became</h2>
+
+<p>Without really planning it, I ended up with:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Flutter</span> <span class="nc">UI</span>
+   <span class="err">↓</span>
+<span class="nc">Better</span> <span class="nc">Player</span> <span class="p">(</span><span class="n">render</span> <span class="p">+</span> <span class="n">lifecycle</span><span class="p">)</span>
+   <span class="err">↓</span>
+<span class="nc">ExoPlayer</span> <span class="p">(</span><span class="n">actual</span> <span class="n">control</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="the-takeaway">The Takeaway</h2>
+
+<p>I didn’t:</p>
+
+<ul>
+  <li>switch frameworks</li>
+  <li>rewrite everything in Kotlin</li>
+  <li>abandon Flutter</li>
+</ul>
+
+<p>I just:</p>
+
+<blockquote>
+  <p>stopped treating the plugin as a black box</p>
+</blockquote>
+
+<hr />
+
+<p>Better Player isn’t bad.
+But its abstraction:</p>
+
+<ul>
+  <li>hides too much</li>
+  <li>simplifies too aggressively</li>
+  <li>breaks down in complex scenarios</li>
+</ul>
 
 <hr />
 
@@ -161,7 +343,17 @@ or go deeper.</p>
 
 <p>I went deeper.</p>
 
-<p>So far… it works 😄</p>]]></content><author><name>Oz Gioia</name></author><category term="flutter" /><category term="android" /><category term="video" /><category term="drm" /><category term="flutter" /><category term="exoplayer" /><category term="iptv" /><category term="drm" /><category term="dash" /><category term="clearkey" /><summary type="html"><![CDATA[I started the weekend with a simple idea:]]></summary></entry><entry><title type="html">Is It Already Dead? Or Can Something Be Saved?</title><link href="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/" rel="alternate" type="text/html" title="Is It Already Dead? Or Can Something Be Saved?" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved</id><content type="html" xml:base="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/"><![CDATA[<p>In 2011, I walked into a job interview for a developer position.<br />
+<p>So far… it works 😄</p>
+
+<h2 id="the-result">The Result</h2>
+
+<ul>
+  <li>Multi-audio ✔️</li>
+  <li>Subtitles ✔️</li>
+  <li>DRM ✔️</li>
+</ul>
+
+<p>Without replacing Better Player.</p>]]></content><author><name>Oz Gioia</name></author><category term="flutter" /><category term="android" /><category term="video" /><category term="drm" /><category term="flutter" /><category term="exoplayer" /><category term="iptv" /><category term="drm" /><category term="dash" /><category term="clearkey" /><summary type="html"><![CDATA[I started the weekend with a simple idea:]]></summary></entry><entry><title type="html">Is It Already Dead? Or Can Something Be Saved?</title><link href="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/" rel="alternate" type="text/html" title="Is It Already Dead? Or Can Something Be Saved?" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved</id><content type="html" xml:base="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/"><![CDATA[<p>In 2011, I walked into a job interview for a developer position.<br />
 When they asked if I knew <em>Progress</em>, I said yes — thinking they meant <strong>PostgreSQL</strong>.</p>
 
 <p>They didn’t.<br />
