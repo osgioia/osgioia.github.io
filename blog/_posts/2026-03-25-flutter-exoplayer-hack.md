@@ -121,13 +121,196 @@ Yes, it works.
 
 ---
 
-## The Result
+## Suddenly… Audio Tracks Exist
 
-- Multi-audio ✔️  
-- Subtitles ✔️  
-- DRM ✔️  
+Once I had the real ExoPlayer:
 
-Without replacing Better Player.
+```kotlin
+exoPlayer.currentTracks.groups
+    .filter { it.type == C.TRACK_TYPE_AUDIO }
+```
+
+And just like that:
+
+👉 all audio tracks showed up
+
+They were always there.
+Better Player just didn’t expose them.
+
+---
+
+Selecting one was straightforward:
+
+```kotlin
+trackSelector.parameters = trackSelector.buildUponParameters()
+    .setOverrideForType(
+        TrackSelectionOverride(group.mediaTrackGroup, 0)
+    )
+    .build()
+```
+
+Done.
+
+---
+
+## Wiring It Through MainActivity
+
+I exposed this through a MethodChannel.
+
+Now Flutter can:
+
+- get audio tracks
+- get subtitle tracks
+- select tracks
+- listen for subtitle cues
+
+Example:
+
+```kotlin
+when (call.method) {
+
+    "getAudioTracks" -> {
+        val tracks = exoPlayer.currentTracks.groups
+            .filter { it.type == C.TRACK_TYPE_AUDIO }
+            .mapIndexed { i, group ->
+                val fmt = group.getTrackFormat(0)
+                mapOf(
+                    "groupIndex" to i,
+                    "language" to (fmt.language ?: "und"),
+                    "label" to (fmt.label ?: "Audio $i")
+                )
+            }
+        result.success(tracks)
+    }
+
+    "selectAudioTrack" -> {
+        val groupIndex = call.argument<Int>("groupIndex")!!
+        val group = audioGroups[groupIndex]
+
+        trackSelector.parameters = trackSelector.buildUponParameters()
+            .setOverrideForType(
+                TrackSelectionOverride(group.mediaTrackGroup, 0)
+            )
+            .build()
+
+        result.success(null)
+    }
+}
+```
+
+---
+
+## Flutter Side (Still Using Better Player)
+
+Here’s the funny part:
+
+I didn’t remove Better Player.
+
+```kotlin
+_betterPlayerController = BetterPlayerController(config);
+
+_betterPlayerController!.setupDataSource(
+  BetterPlayerDataSource(
+    BetterPlayerDataSourceType.network,
+    url,
+    videoFormat: BetterPlayerVideoFormat.dash,
+    drmConfiguration: BetterPlayerDrmConfiguration(
+      drmType: BetterPlayerDrmType.clearKey,
+      clearKey: jwk,
+    ),
+  ),
+);
+```
+
+It still handles:
+
+- rendering
+- lifecycle
+- texture management
+
+But now I can fetch native tracks:
+
+```kotlin
+final audios = await _betterPlayerController!.getNativeAudioTracks();
+final subs = await _betterPlayerController!.getNativeSubtitleTracks();
+```
+
+And render them:
+
+```kotlin
+ListTile(
+  title: Text(track['label']),
+  onTap: () {
+    _betterPlayerController!
+        .selectNativeAudioTrack(track['groupIndex']);
+  },
+)
+```
+
+---
+
+## Subtitles (Custom Rendering)
+
+Better Player wasn’t handling subtitles well either.
+
+So I listened directly from ExoPlayer:
+
+```kotlin
+override fun onCues(cueGroup: CueGroup) {
+    val text = cueGroup.cues
+        .mapNotNull { it.text?.toString() }
+        .joinToString("\n")
+
+    channel.invokeMethod("onSubtitleCue", text)
+}
+```
+
+Then rendered them in Flutter:
+
+```kotlin
+if (_subtitlesActive && _currentSubtitle.isNotEmpty)
+  Positioned(
+    bottom: 60,
+    child: Text(_currentSubtitle),
+  )
+```
+
+---
+
+## What This Became
+
+Without really planning it, I ended up with:
+
+```kotlin
+Flutter UI
+   ↓
+Better Player (render + lifecycle)
+   ↓
+ExoPlayer (actual control)
+```
+
+---
+
+## The Takeaway
+
+I didn’t:
+
+- switch frameworks
+- rewrite everything in Kotlin
+- abandon Flutter
+
+I just:
+
+> stopped treating the plugin as a black box
+
+---
+
+Better Player isn’t bad.
+But its abstraction:
+
+- hides too much
+- simplifies too aggressively
+- breaks down in complex scenarios
 
 ---
 
@@ -145,3 +328,12 @@ And when you need more:
 I went deeper.
 
 So far… it works 😄
+
+## The Result
+
+- Multi-audio ✔️  
+- Subtitles ✔️  
+- DRM ✔️  
+
+Without replacing Better Player.
+
