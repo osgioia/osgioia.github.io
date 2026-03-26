@@ -1,4 +1,167 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-02-05T21:34:30+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Is It Already Dead? Or Can Something Be Saved?</title><link href="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/" rel="alternate" type="text/html" title="Is It Already Dead? Or Can Something Be Saved?" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved</id><content type="html" xml:base="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/"><![CDATA[<p>In 2011, I walked into a job interview for a developer position.<br />
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-03-26T01:11:04+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">How I Broke Better Player (Without Actually Replacing It)</title><link href="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/" rel="alternate" type="text/html" title="How I Broke Better Player (Without Actually Replacing It)" /><published>2026-03-25T00:00:00+00:00</published><updated>2026-03-25T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack</id><content type="html" xml:base="https://osgioia.dev/blog/2026/03/25/flutter-exoplayer-hack/"><![CDATA[<p>I started the weekend with a simple idea:</p>
+
+<blockquote>
+  <p>“I’ll tweak an open source IPTV Flutter project a bit and call it a day.”</p>
+</blockquote>
+
+<p>Yeah… no.</p>
+
+<hr />
+
+<p>The project was using Better Player.<br />
+At first glance, everything looked fine:</p>
+
+<ul>
+  <li>streams were playing</li>
+  <li>DASH (<code class="language-plaintext highlighter-rouge">.mpd</code>) worked</li>
+  <li>even DRM (ClearKey) was supported</li>
+</ul>
+
+<p>So naturally, I assumed the hard parts were already solved.</p>
+
+<p>They weren’t.</p>
+
+<hr />
+
+<h2 id="the-first-problem">The First Problem</h2>
+
+<p>The stream had multiple audio tracks.</p>
+
+<p>The player had… one.</p>
+
+<p>No selector.<br />
+No API.<br />
+No indication that multiple tracks even existed.</p>
+
+<p>Just:</p>
+
+<blockquote>
+  <p>“Here’s your audio. Enjoy.”</p>
+</blockquote>
+
+<hr />
+
+<h2 id="trying-alternatives-spoiler-didnt-work">Trying Alternatives (Spoiler: Didn’t Work)</h2>
+
+<p>First stop: <code class="language-plaintext highlighter-rouge">video_player</code>.</p>
+
+<ul>
+  <li>simple</li>
+  <li>official</li>
+  <li>useless for this case</li>
+</ul>
+
+<p>No real support for:</p>
+<ul>
+  <li>advanced DASH</li>
+  <li>DRM</li>
+  <li>track selection</li>
+</ul>
+
+<hr />
+
+<p>Then I tried <code class="language-plaintext highlighter-rouge">media_kit</code>.</p>
+
+<p>This one looked promising:</p>
+
+<ul>
+  <li>multiple audio tracks ✔️</li>
+  <li>subtitles ✔️</li>
+  <li>clean API ✔️</li>
+</ul>
+
+<p>But then:</p>
+
+<blockquote>
+  <p>DRM: nope.</p>
+</blockquote>
+
+<p>And not “kind of no”.<br />
+More like:</p>
+
+<blockquote>
+  <p>“This is not part of the stack.”</p>
+</blockquote>
+
+<p>Because on Android, DRM lives in a completely different world.</p>
+
+<hr />
+
+<h2 id="the-realization">The Realization</h2>
+
+<p>At that point it became obvious:</p>
+
+<blockquote>
+  <p>If I want proper DASH + DRM, I’m using ExoPlayer.</p>
+</blockquote>
+
+<p>And Better Player… was already using it.</p>
+
+<hr />
+
+<p>So the question changed from:</p>
+
+<blockquote>
+  <p>“Which library should I use?”</p>
+</blockquote>
+
+<p>to:</p>
+
+<blockquote>
+  <p>“What is this library hiding from me?”</p>
+</blockquote>
+
+<hr />
+
+<h2 id="the-hack-yes-reflection">The Hack (Yes, Reflection)</h2>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">pluginClass</span> <span class="p">=</span> <span class="nc">Class</span><span class="p">.</span><span class="nf">forName</span><span class="p">(</span><span class="s">"com.sarthak.better_player_enhanced.BetterPlayerPlugin"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">videoPlayersField</span> <span class="p">=</span> <span class="n">pluginClass</span><span class="p">.</span><span class="nf">getDeclaredField</span><span class="p">(</span><span class="s">"videoPlayers"</span><span class="p">)</span>
+<span class="n">videoPlayersField</span><span class="p">.</span><span class="n">isAccessible</span> <span class="p">=</span> <span class="k">true</span>
+
+<span class="kd">val</span> <span class="py">videoPlayers</span> <span class="p">=</span> <span class="n">videoPlayersField</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="n">pluginInstance</span><span class="p">)</span> <span class="k">as</span> <span class="nc">LongSparseArray</span><span class="p">&lt;</span><span class="nc">Any</span><span class="p">&gt;</span>
+<span class="kd">val</span> <span class="py">betterPlayer</span> <span class="p">=</span> <span class="n">videoPlayers</span><span class="p">[</span><span class="n">textureId</span><span class="p">]</span>
+
+<span class="kd">val</span> <span class="py">exoPlayerField</span> <span class="p">=</span> <span class="n">betterPlayer</span><span class="p">.</span><span class="n">javaClass</span><span class="p">.</span><span class="nf">getDeclaredField</span><span class="p">(</span><span class="s">"exoPlayer"</span><span class="p">)</span>
+<span class="n">exoPlayerField</span><span class="p">.</span><span class="n">isAccessible</span> <span class="p">=</span> <span class="k">true</span>
+
+<span class="kd">val</span> <span class="py">exoPlayer</span> <span class="p">=</span> <span class="n">exoPlayerField</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="n">betterPlayer</span><span class="p">)</span> <span class="k">as</span> <span class="nc">ExoPlayer</span>
+</code></pre></div></div>
+
+<p>Yes, it’s reflection.<br />
+Yes, it’s ugly.<br />
+Yes, it works.</p>
+
+<hr />
+
+<h2 id="the-result">The Result</h2>
+
+<ul>
+  <li>Multi-audio ✔️</li>
+  <li>Subtitles ✔️</li>
+  <li>DRM ✔️</li>
+</ul>
+
+<p>Without replacing Better Player.</p>
+
+<hr />
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Sometimes the problem isn’t the tool.</p>
+
+<p>It’s how much of it you’re allowed to see.</p>
+
+<p>And when you need more:</p>
+
+<blockquote>
+  <p>you either switch tools…<br />
+or go deeper.</p>
+</blockquote>
+
+<p>I went deeper.</p>
+
+<p>So far… it works 😄</p>]]></content><author><name>Oz Gioia</name></author><category term="flutter" /><category term="android" /><category term="video" /><category term="drm" /><category term="flutter" /><category term="exoplayer" /><category term="iptv" /><category term="drm" /><category term="dash" /><category term="clearkey" /><summary type="html"><![CDATA[I started the weekend with a simple idea:]]></summary></entry><entry><title type="html">Is It Already Dead? Or Can Something Be Saved?</title><link href="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/" rel="alternate" type="text/html" title="Is It Already Dead? Or Can Something Be Saved?" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved</id><content type="html" xml:base="https://osgioia.dev/blog/2026/02/05/is-it-already-dead-or-can-something-be-saved/"><![CDATA[<p>In 2011, I walked into a job interview for a developer position.<br />
 When they asked if I knew <em>Progress</em>, I said yes — thinking they meant <strong>PostgreSQL</strong>.</p>
 
 <p>They didn’t.<br />
