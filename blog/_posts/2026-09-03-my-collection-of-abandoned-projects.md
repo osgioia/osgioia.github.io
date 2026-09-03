@@ -48,7 +48,7 @@ The pattern repeats: when a project is born from "I need to solve this for mysel
 
 Now, "survive" has a particular definition in my dictionary, because scrapers have their own problem, and the problem is me: I'm cheap as hell. I'm not going to pay for a VPS, an instance, or anything with a recurring monthly cost for something that isn't sellable, has no other users, and that I only use a couple of times a month so I don't buy an overpriced vinyl or find out too late about a show that's already sold out. So instead of living in the cloud like it's supposed to, these scrapers run as cron jobs on some old Linux PC.
 
-**## Plants vs. Zombies**
+## Plants vs. Zombies
 
 Then there's the rest. The reverse proxy that I got halfway through understanding. The P2P system that has a peer-scoring architecture more elaborate than some projects that actually charge money and have investors. The concert scraper that was supposed to notify me about every show in the country and that, the last time I looked at it, was notifying me about a show that had happened two months earlier. Things I started, learned a lot from, and then abandoned with the same tranquility with which you leave a dirty plate "for later."
 
@@ -56,7 +56,7 @@ I didn't delete them. They're still there, like a stuffed dog in the living room
 
 ## Question!
 
-****And why don't you make some of those side projects into tutorials or courses, so you can learn something with less drama?****
+**And why don't you make some of those side projects into tutorials or courses, so you can learn something with less drama?**
 
 Because I'm not interested in pre-chewed challenges. I like the challenge itself, not the feeling of completing a checklist that someone else already solved for me. A side project cloned from a tutorial is like having the same duplicate sticker that millions of developers on the internet have: clone Netflix number 4,582, todo app number 9,213. All lined up on the same shelf, indistinguishable from one another, like the Buzz Lightyear joke in Toy Story when he realizes he's just another toy from an entire production line. I'd rather have my original failures, thanks.
 
