@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-09-03T17:41:46+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Why I Start 20 Projects and Finish 3 (and Why That’s Okay)</title><link href="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/" rel="alternate" type="text/html" title="Why I Start 20 Projects and Finish 3 (and Why That’s Okay)" /><published>2026-09-03T16:09:00+00:00</published><updated>2026-09-03T16:09:00+00:00</updated><id>https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects</id><content type="html" xml:base="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/"><![CDATA[<p><img src="/blog/assets/images/thomas-edison-homer.jpg" alt="My collection of abandoned projects" /></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-09-03T17:46:23+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Why I Start 20 Projects and Finish 3 (and Why That’s Okay)</title><link href="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/" rel="alternate" type="text/html" title="Why I Start 20 Projects and Finish 3 (and Why That’s Okay)" /><published>2026-09-03T16:09:00+00:00</published><updated>2026-09-03T16:09:00+00:00</updated><id>https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects</id><content type="html" xml:base="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/"><![CDATA[<p><img src="/blog/assets/images/thomas-edison-homer.jpg" alt="My collection of abandoned projects" /></p>
 
 <p>I have a problem. It’s not serious, it doesn’t hurt, but it’s there, like a zombie process nobody killed: accumulating GitHub repositories that I open every now and then just to remind myself they exist and feel a perfectly manageable pang of guilt.</p>
 
@@ -29,7 +29,7 @@
 
 <p>And that’s what I can remember off the top of my head. I’m probably missing a few. Being almost 40 doesn’t come alone, just like my Alzheimer’s.</p>
 
-<p><strong>## Why me?</strong></p>
+<h2 id="why-me">Why me?</h2>
 
 <p>No idea. I guess for a long time I thought it was a lack of discipline. Now it’s more about not having enough time, and whenever I do have some free time, wanting to do 40 things at the same time. But basically, I have a brain that confuses “interest” with “lifelong commitment” every time a new shiny problem appears.</p>
 
@@ -39,7 +39,7 @@
 
 <p>And finally, there’s pure technical curiosity. I’ve always had that curiosity about how certain things were built, which is very different from the need to actually finish something. Sometimes what I want isn’t “a finished product for the world,” I just want to <em>know how it works under the hood</em>, down to the last detail, obsessively. Once I understand the mechanism, my motivation to polish it and make it nice for other humans falls off a cliff like a service nobody asked for.</p>
 
-<p><strong>## The Last of Us</strong></p>
+<h2 id="the-last-of-us">The Last of Us</h2>
 
 <p>It’s not all a graveyard. Some projects actually reached a usable or semi-zombie state, and looking back, they have something in common: they were small, had a visible finish line, or solved something I personally needed in an urgent way.</p>
 
@@ -55,7 +55,7 @@
 
 <p>I didn’t delete them. They’re still there, like a stuffed dog in the living room. I learned something from each of them — even if it’s just “this was harder than I thought” or, more honestly, “what I really wanted was to understand it, not have it.”</p>
 
-<p><strong>## Question!</strong></p>
+<h2 id="question">Question!</h2>
 
 <p><strong>**And why don’t you make some of those side projects into tutorials or courses, so you can learn something with less drama?</strong>**</p>
 
@@ -63,7 +63,7 @@
 
 <p><img src="/blog/assets/images/a-store-full-of-buzz-lightyears.jpg" alt="Buzz lightyears Store" /></p>
 
-<p><strong>## The Final Cut</strong></p>
+<h2 id="the-final-cut">The Final Cut</h2>
 
 <p>I don’t know if this can be cured. Again, it’s not just a lack of discipline. If I ever manage to finish everything I start, it’ll be because I’ve run out of ideas, or because I finally decided to blame television or TikTok for my lack of imagination. If I stumble across an interesting technical problem tomorrow, I’ll most likely create a new repository instead of going back and finishing one of the six I already have open.</p>
 
