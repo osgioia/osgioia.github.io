@@ -6,7 +6,7 @@ categories: [meta, blog]
 tags: [meta, sarcasm, indieDev, career]
 ---
 
-![My collection of abandoned projects](/assets/images/thomas-edison-homer.jpg)
+![My collection of abandoned projects](blog/assets/images/thomas-edison-homer.jpg)
 
 I have a problem. It's not serious, it doesn't hurt, but it's there, like a zombie process nobody killed: accumulating GitHub repositories that I open every now and then just to remind myself they exist and feel a perfectly manageable pang of guilt.
 
@@ -60,7 +60,7 @@ I didn't delete them. They're still there, like a stuffed dog in the living room
 
 Because I'm not interested in pre-chewed challenges. I like the challenge itself, not the feeling of completing a checklist that someone else already solved for me. A side project cloned from a tutorial is like having the same duplicate sticker that millions of developers on the internet have: clone Netflix number 4,582, todo app number 9,213. All lined up on the same shelf, indistinguishable from one another, like the Buzz Lightyear joke in Toy Story when he realizes he's just another toy from an entire production line. I'd rather have my original failures, thanks.
 
-![Buzz lightyears Store](/assets/images/a-store-full-of-buzz-lightyears.jpg)
+![Buzz lightyears Store](blog/assets/images/a-store-full-of-buzz-lightyears.jpg)
 
 **## The Final Cut**
 
