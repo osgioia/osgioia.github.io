@@ -46,11 +46,17 @@ body {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 
   .site-nav {
+    float: none;             // anula el float: right de minima
+    width: 100%;             // ahora hay espacio para que space-between reparta
+    line-height: normal;     // minima fuerza 54px y desalinea el botón
     display: flex;
     justify-content: space-between;
     align-items: center;
 
     .site-title {
+      float: none;             // anula el float: left de minima
+      line-height: normal;
+      letter-spacing: normal;  // minima usa -1px
       font-size: 1.5rem;
       font-weight: bold;
       color: var(--primary-color);
@@ -126,11 +132,13 @@ body {
 }
 
 // Dark mode toggle states
+// El selector repite .site-nav .nav-links para igualar la especificidad
+// de las reglas de arriba; si no, las de modo claro ganan y el sol no se oculta.
 .dark .site-header {
   background: var(--background-color);
   border-bottom-color: var(--border-color);
 
-  .dark-mode-toggle {
+  .site-nav .nav-links .dark-mode-toggle {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
     &:hover {
@@ -451,6 +459,9 @@ body {
 // Responsive design
 @media (max-width: 768px) {
   .site-header .site-nav {
+    position: static;   // minima lo pone absolute (menú hamburguesa) bajo 600px
+    border: 0;
+    background: none;
     flex-direction: column;
     gap: 1rem;
   }
