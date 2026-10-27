@@ -1,4 +1,882 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-10-22T18:35:37+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Why I Start 20 Projects and Finish 3 (and Why That’s Okay)</title><link href="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/" rel="alternate" type="text/html" title="Why I Start 20 Projects and Finish 3 (and Why That’s Okay)" /><published>2026-09-03T16:09:00+00:00</published><updated>2026-09-03T16:09:00+00:00</updated><id>https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects</id><content type="html" xml:base="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/"><![CDATA[<p><img src="/blog/assets/images/thomas-edison-homer.jpg" alt="My collection of abandoned projects" /></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://osgioia.dev/blog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osgioia.dev/blog/" rel="alternate" type="text/html" /><updated>2026-10-27T16:52:43+00:00</updated><id>https://osgioia.dev/blog/feed.xml</id><title type="html">Oz Gioia Blog</title><subtitle>Senior Software Engineer blog about development, cloud technologies, and best practices.</subtitle><author><name>Oz Gioia</name></author><entry><title type="html">Saving F* Words</title><link href="https://osgioia.dev/blog/2026/10/27/saving-f-words/" rel="alternate" type="text/html" title="Saving F* Words" /><published>2026-10-27T16:21:00+00:00</published><updated>2026-10-27T16:21:00+00:00</updated><id>https://osgioia.dev/blog/2026/10/27/saving-f-words</id><content type="html" xml:base="https://osgioia.dev/blog/2026/10/27/saving-f-words/"><![CDATA[<h1 id="saving-f-words">Saving F* Words</h1>
+
+<p><em>Deploying NestJS + TypeORM + PostgreSQL to Supabase and Vercel without losing your mind.</em></p>
+
+<p>Express wants a server. Guillermo Rauch wants a function.</p>
+
+<p>And somehow, you’re supposed to make everyone happy.</p>
+
+<p>Express was designed around a long-running process that listens on a port, handles requests, and stays alive. Vercel prefers serverless functions that can be invoked independently and scaled when needed.</p>
+
+<p>TypeORM, meanwhile, would appreciate it if everyone stopped changing the rules halfway through initialization.</p>
+
+<p>And you? You just wanted to deploy an API.</p>
+
+<p>What could possibly go wrong?</p>
+
+<p>Plenty, apparently.</p>
+
+<p>This is a practical guide to deploying a NestJS application using Express, TypeORM, and PostgreSQL hosted on Supabase, with Vercel handling the application runtime.</p>
+
+<p>We’ll cover the serverless adapter, database connections, migrations, environment variables, and the kind of deployment errors that make you question your career choices.</p>
+
+<p>The examples assume NestJS 11, TypeORM, PostgreSQL, and a Vercel Node.js function. Exact runtime configuration may vary depending on the Vercel runtime and deployment setup you’re using, so treat the configuration as a starting point rather than a universal incantation.</p>
+
+<p>Let’s save some F* words.</p>
+
+<p><img src="/blog/assets/images/futurama-fry-not-sure-if-futurama-fry-source-screenshot.webp" alt="Fry squinting suspiciously at the deployment" /></p>
+
+<h2 id="0-the-architecture-what-are-we-building">0. The architecture: what are we building?</h2>
+
+<p>The setup is straightforward on paper:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                    Client
+                      |
+                      v
+             Vercel Serverless Function
+                      |
+                      v
+               NestJS + Express
+                      |
+                      v
+             Supabase Connection Pooler
+                      |
+                      v
+                  PostgreSQL
+</code></pre></div></div>
+
+<p>The application runs as a serverless function on Vercel. PostgreSQL is hosted by Supabase, and the connection pooler helps manage database connections when multiple function instances are running.</p>
+
+<p>Two principles explain most of the decisions in this guide:</p>
+
+<ol>
+  <li><strong>The application must work within the serverless execution model.</strong> You don’t simply start a permanent HTTP server and expect the platform to manage it like a traditional VM.</li>
+  <li><strong>Database migrations should run as a separate deployment step.</strong> Don’t let every application instance attempt to modify the database schema at startup.</li>
+</ol>
+
+<p>That’s the whole idea.</p>
+
+<p>The rest is making sure the implementation actually follows it.</p>
+
+<h2 id="1-why-deploying-nestjs--express-to-serverless-hurts">1. Why deploying NestJS + Express to serverless hurts</h2>
+
+<p>A conventional NestJS application usually starts like this:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">async</span> <span class="kd">function</span> <span class="nf">bootstrap</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">NestFactory</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="nx">AppModule</span><span class="p">);</span>
+
+  <span class="k">await</span> <span class="nx">app</span><span class="p">.</span><span class="nf">listen</span><span class="p">(</span><span class="mi">3000</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nf">bootstrap</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>This is perfectly reasonable for a traditional server, container, or virtual machine.</p>
+
+<p>The process starts, binds to port <code class="language-plaintext highlighter-rouge">3000</code>, and waits for incoming requests.</p>
+
+<p>Vercel’s serverless execution model is different. The platform invokes a function to handle incoming requests. You generally don’t want your application entry point to call <code class="language-plaintext highlighter-rouge">app.listen()</code> and attempt to manage its own listening socket.</p>
+
+<p>Instead, the platform handles the request lifecycle, and your function needs to expose a compatible request handler.</p>
+
+<p>For an Express-based NestJS application, the <code class="language-plaintext highlighter-rouge">ExpressAdapter</code> gives us a way to connect the two.</p>
+
+<h3 id="11-create-a-serverless-entry-point">1.1 Create a serverless entry point</h3>
+
+<p>Create <code class="language-plaintext highlighter-rouge">api/index.ts</code>:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">express</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">express</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">NestFactory</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/core</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">ExpressAdapter</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/platform-express</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">ValidationPipe</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/common</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">AppModule</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../src/app.module</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">config</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="na">api</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">bodyParser</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="p">},</span>
+<span class="p">};</span>
+
+<span class="kd">let</span> <span class="nx">cachedServer</span><span class="p">:</span> <span class="nx">express</span><span class="p">.</span><span class="nx">Express</span> <span class="o">|</span> <span class="kc">undefined</span><span class="p">;</span>
+
+<span class="k">async</span> <span class="kd">function</span> <span class="nf">getServer</span><span class="p">():</span> <span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">express</span><span class="p">.</span><span class="nx">Express</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="k">if </span><span class="p">(</span><span class="o">!</span><span class="nx">cachedServer</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="nf">express</span><span class="p">();</span>
+
+    <span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">NestFactory</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+      <span class="nx">AppModule</span><span class="p">,</span>
+      <span class="k">new</span> <span class="nc">ExpressAdapter</span><span class="p">(</span><span class="nx">server</span><span class="p">),</span>
+    <span class="p">);</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nf">setGlobalPrefix</span><span class="p">(</span><span class="dl">'</span><span class="s1">api</span><span class="dl">'</span><span class="p">);</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nf">useGlobalPipes</span><span class="p">(</span>
+      <span class="k">new</span> <span class="nc">ValidationPipe</span><span class="p">({</span>
+        <span class="na">whitelist</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="p">}),</span>
+    <span class="p">);</span>
+
+    <span class="k">await</span> <span class="nx">app</span><span class="p">.</span><span class="nf">init</span><span class="p">();</span>
+
+    <span class="nx">cachedServer</span> <span class="o">=</span> <span class="nx">server</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">cachedServer</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="k">async </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="k">await</span> <span class="nf">getServer</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="nf">server</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>There are a few important details here.</p>
+
+<p><strong><code class="language-plaintext highlighter-rouge">app.init()</code> instead of <code class="language-plaintext highlighter-rouge">app.listen()</code></strong></p>
+
+<p>NestJS needs to initialize its modules, providers, middleware, and routes. <code class="language-plaintext highlighter-rouge">app.init()</code> performs application initialization without attempting to open a listening port.</p>
+
+<p>The serverless platform is responsible for receiving the request.</p>
+
+<p><strong>Cache the initialized handler</strong></p>
+
+<p>The <code class="language-plaintext highlighter-rouge">cachedServer</code> variable lets the function reuse its initialized Express application when the same warm runtime instance handles subsequent requests.</p>
+
+<p>That can avoid repeating the NestJS bootstrap process on every invocation handled by that instance.</p>
+
+<p>However, don’t mistake this for a guarantee of a persistent process. Serverless platforms can create additional instances or replace existing ones whenever they need to.</p>
+
+<p><strong>Be careful with request body parsing</strong></p>
+
+<p>The <code class="language-plaintext highlighter-rouge">bodyParser: false</code> setting is relevant to Vercel’s compatible function configurations where the platform’s default body parser would otherwise consume the request stream before Express handles it.</p>
+
+<p>This setting is not a universal requirement for every Vercel runtime. Check the runtime and request-handling behavior of your deployment before applying it blindly.</p>
+
+<p>Because debugging an empty JSON body is fun exactly once.</p>
+
+<h3 id="12-dont-duplicate-your-nestjs-bootstrap-configuration">1.2 Don’t duplicate your NestJS bootstrap configuration</h3>
+
+<p>There’s another problem hiding here.</p>
+
+<p>Your local application may configure CORS, Helmet, validation pipes, interceptors, Swagger, and a global route prefix. If the serverless entry point initializes the application differently, your local and deployed environments can behave differently.</p>
+
+<p>That’s a fantastic way to discover that your production API has a personality of its own.</p>
+
+<p>Extract the shared setup into a reusable function.</p>
+
+<p>For example, <code class="language-plaintext highlighter-rouge">src/setup-app.ts</code>:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span>
+  <span class="nx">INestApplication</span><span class="p">,</span>
+  <span class="nx">ValidationPipe</span><span class="p">,</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/common</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nf">setupApp</span><span class="p">(</span><span class="nx">app</span><span class="p">:</span> <span class="nx">INestApplication</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nf">setGlobalPrefix</span><span class="p">(</span><span class="dl">'</span><span class="s1">api</span><span class="dl">'</span><span class="p">);</span>
+
+  <span class="nx">app</span><span class="p">.</span><span class="nf">useGlobalPipes</span><span class="p">(</span>
+    <span class="k">new</span> <span class="nc">ValidationPipe</span><span class="p">({</span>
+      <span class="na">whitelist</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="p">}),</span>
+  <span class="p">);</span>
+
+  <span class="c1">// Configure CORS, Helmet, interceptors,</span>
+  <span class="c1">// filters, and other shared behavior here.</span>
+
+  <span class="k">return</span> <span class="nx">app</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Your conventional entry point can then use it:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">NestFactory</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/core</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">AppModule</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./app.module</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">setupApp</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./setup-app</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">async</span> <span class="kd">function</span> <span class="nf">bootstrap</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">NestFactory</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="nx">AppModule</span><span class="p">);</span>
+
+  <span class="nf">setupApp</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
+
+  <span class="k">await</span> <span class="nx">app</span><span class="p">.</span><span class="nf">listen</span><span class="p">(</span><span class="mi">3000</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nf">bootstrap</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>And the serverless entry point can use the same configuration:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">await</span> <span class="nx">NestFactory</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+  <span class="nx">AppModule</span><span class="p">,</span>
+  <span class="k">new</span> <span class="nc">ExpressAdapter</span><span class="p">(</span><span class="nx">server</span><span class="p">),</span>
+<span class="p">);</span>
+
+<span class="nf">setupApp</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
+
+<span class="k">await</span> <span class="nx">app</span><span class="p">.</span><span class="nf">init</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>The goal is simple: <strong>share application configuration, but keep the runtime-specific startup logic separate.</strong></p>
+
+<h3 id="13-configure-routing">1.3 Configure routing</h3>
+
+<p>A minimal <code class="language-plaintext highlighter-rouge">vercel.json</code> might look like this:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"buildCommand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"npm run build"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"functions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"api/index.ts"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"maxDuration"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"memory"</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"rewrites"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/(.*)"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"destination"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/api"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>This illustrates the intended routing and function resource configuration. Confirm that the options and rewrite behavior match the Vercel runtime and project configuration you’re actually using.</p>
+
+<p>In particular, don’t assume that <code class="language-plaintext highlighter-rouge">outputDirectory: "dist"</code> is appropriate for every NestJS deployment. Vercel needs to build and package the function correctly; a directory containing your compiled NestJS application isn’t automatically a valid static output directory.</p>
+
+<p>Also, make sure the rewrite behavior preserves the routes NestJS expects. If your application uses the global prefix <code class="language-plaintext highlighter-rouge">api</code>, verify that a request to <code class="language-plaintext highlighter-rouge">/api/users</code> reaches the correct NestJS route rather than accidentally producing <code class="language-plaintext highlighter-rouge">/api/api/users</code>.</p>
+
+<p>Congratulations. You now have an application that can be initialized by a serverless function.</p>
+
+<p>Only a few dozen more things can go wrong.</p>
+
+<h2 id="2-prerequisites">2. Prerequisites</h2>
+
+<p>Before continuing, make sure you have:</p>
+
+<ul>
+  <li>A NestJS project with TypeORM configured.</li>
+  <li>The PostgreSQL driver installed: <code class="language-plaintext highlighter-rouge">pg</code>.</li>
+  <li>A Supabase project with a PostgreSQL database.</li>
+  <li>A Vercel account and a working project configuration.</li>
+  <li>A compatible Node.js runtime.</li>
+  <li>A migration workflow that you can run independently of application startup.</li>
+</ul>
+
+<p>If you already have a working NestJS application locally, that’s a good start.</p>
+
+<p>If it doesn’t work locally, deploying it to another platform won’t magically improve the situation.</p>
+
+<p>It will, however, give you more logs to read.</p>
+
+<h2 id="3-set-up-postgresql-on-supabase">3. Set up PostgreSQL on Supabase</h2>
+
+<p>Create a project in Supabase and open the database connection settings.</p>
+
+<p>Supabase provides connection details for connecting directly to PostgreSQL and for using its connection pooler, Supavisor.</p>
+
+<p>For a serverless application, the pooler is worth considering because serverless platforms can run multiple function instances concurrently. Each instance may create its own database connection pool.</p>
+
+<p>Without appropriate limits, the number of database connections can grow quickly.</p>
+
+<p>For example:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>20 function instances × 5 connections each = 100 connections
+</code></pre></div></div>
+
+<p>That is a simplified illustration, but it demonstrates the problem.</p>
+
+<p>Now imagine each instance opens dozens of connections.</p>
+
+<p>PostgreSQL will eventually remind you that connections are a finite resource.</p>
+
+<h3 id="31-use-the-appropriate-connection-string">3.1 Use the appropriate connection string</h3>
+
+<p>Supabase’s transaction-mode pooler commonly uses port <code class="language-plaintext highlighter-rouge">6543</code>. Your exact hostname, username, and connection string should come from your Supabase dashboard.</p>
+
+<p>A connection string may look similar to this:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>postgresql://postgres.&lt;project-ref&gt;:&lt;password&gt;@&lt;pooler-host&gt;:6543/postgres
+</code></pre></div></div>
+
+<p>Use the actual values provided by Supabase rather than copying the placeholders.</p>
+
+<p>Transaction pooling is useful for applications that open many short-lived connections, but it has limitations. Features that depend on a persistent database session may behave differently, so verify compatibility with your database driver and application.</p>
+
+<p>Don’t assume that the direct connection and the pooler are interchangeable in every scenario.</p>
+
+<h3 id="32-keep-your-database-credentials-private">3.2 Keep your database credentials private</h3>
+
+<p>Never commit your production connection string to Git.</p>
+
+<p>Use environment variables or your platform’s secret-management mechanism. If a real credential has already been committed to a repository, removing it from the latest commit isn’t enough: rotate the credential.</p>
+
+<p>The old value may still exist in Git history.</p>
+
+<p>Yes, even if the repository is private.</p>
+
+<p>Especially if the repository is private and you keep forgetting that other people can have access to it.</p>
+
+<p><img src="/blog/assets/images/ralph-wiggum-im-in-danger-meme.webp" alt="I'm in danger" /></p>
+
+<h2 id="4-database-schema-migrations-not-synchronize">4. Database schema: migrations, not <code class="language-plaintext highlighter-rouge">synchronize</code></h2>
+
+<p>TypeORM provides a convenient option:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">synchronize</span><span class="p">:</span> <span class="kc">true</span>
+</code></pre></div></div>
+
+<p>During local development, this can be useful for quickly iterating on an entity model.</p>
+
+<p>In production, it’s not a substitute for a controlled schema migration strategy.</p>
+
+<p>Your application schema is important data infrastructure. You should know which changes are being applied, when they’re applied, and whether they can safely be rolled back.</p>
+
+<p>A safer production configuration is:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">synchronize</span><span class="p">:</span> <span class="kc">false</span>
+</code></pre></div></div>
+
+<p>Use migrations to create and modify database structures.</p>
+
+<h3 id="41-run-migrations-separately">4.1 Run migrations separately</h3>
+
+<p>A typical deployment workflow looks like this:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. Build and test the application
+2. Run database migrations
+3. Deploy the application
+4. Verify the deployment
+</code></pre></div></div>
+
+<p>The migration command might look like:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s1">'&lt;your-database-url&gt;'</span> <span class="se">\</span>
+<span class="nv">DATABASE_TYPE</span><span class="o">=</span>postgres <span class="se">\</span>
+npm run migration:run
+</code></pre></div></div>
+
+<p>This is an example of passing environment variables to a command in a Unix-like shell. In a real project, use the configuration and scripts you’ve defined for your environment.</p>
+
+<p>The important part is that migrations run as an explicit deployment step, not automatically in every serverless invocation.</p>
+
+<p>Why?</p>
+
+<p>Because multiple application instances shouldn’t independently race to change the schema during startup.</p>
+
+<p>And because production database changes deserve a little more respect than a checkbox in a configuration file.</p>
+
+<h3 id="42-configure-typeorm-for-the-cli">4.2 Configure TypeORM for the CLI</h3>
+
+<p>TypeORM’s CLI runs outside NestJS’s dependency injection system. A standalone <code class="language-plaintext highlighter-rouge">DataSource</code> configuration is therefore useful.</p>
+
+<p>For example, <code class="language-plaintext highlighter-rouge">src/database/data-source.ts</code>:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">DataSource</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">typeorm</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">AppDataSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">DataSource</span><span class="p">({</span>
+  <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">postgres</span><span class="dl">'</span><span class="p">,</span>
+
+  <span class="na">url</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_URL</span><span class="p">,</span>
+
+  <span class="na">host</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_HOST</span><span class="p">,</span>
+
+  <span class="na">port</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_PORT</span>
+    <span class="p">?</span> <span class="nb">Number</span><span class="p">.</span><span class="nf">parseInt</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_PORT</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="p">:</span> <span class="mi">5432</span><span class="p">,</span>
+
+  <span class="na">username</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_USERNAME</span><span class="p">,</span>
+
+  <span class="na">password</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_PASSWORD</span><span class="p">,</span>
+
+  <span class="na">database</span><span class="p">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DATABASE_NAME</span><span class="p">,</span>
+
+  <span class="na">synchronize</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+
+  <span class="na">entities</span><span class="p">:</span> <span class="p">[</span>
+    <span class="c1">// Import or configure your entity classes here.</span>
+  <span class="p">],</span>
+
+  <span class="na">migrations</span><span class="p">:</span> <span class="p">[</span>
+    <span class="c1">// Configure the migration files produced by your build.</span>
+  <span class="p">],</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>If <code class="language-plaintext highlighter-rouge">DATABASE_URL</code> is set, make sure the remaining connection settings are handled consistently with your configuration and driver.</p>
+
+<p>The migration paths must match your actual project structure and the files available to the CLI. TypeScript source paths and compiled JavaScript paths aren’t necessarily the same.</p>
+
+<h3 id="43-configure-typeorm-at-runtime">4.3 Configure TypeORM at runtime</h3>
+
+<p>NestJS can use <code class="language-plaintext highlighter-rouge">TypeOrmModule</code> and a configuration service to initialize the database connection.</p>
+
+<p>A simplified example:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span>
+  <span class="nx">Injectable</span><span class="p">,</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/common</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="p">{</span>
+  <span class="nx">TypeOrmOptionsFactory</span><span class="p">,</span>
+  <span class="nx">TypeOrmModuleOptions</span><span class="p">,</span>
+<span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/typeorm</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">ConfigService</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@nestjs/config</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="p">@</span><span class="nd">Injectable</span><span class="p">()</span>
+<span class="k">export</span> <span class="kd">class</span> <span class="nc">TypeOrmConfigService</span>
+  <span class="k">implements</span> <span class="nx">TypeOrmOptionsFactory</span>
+<span class="p">{</span>
+  <span class="nf">constructor</span><span class="p">(</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="nx">configService</span><span class="p">:</span> <span class="nx">ConfigService</span><span class="p">,</span>
+  <span class="p">)</span> <span class="p">{}</span>
+
+  <span class="nf">createTypeOrmOptions</span><span class="p">():</span> <span class="nx">TypeOrmModuleOptions</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">type</span><span class="p">:</span> <span class="dl">'</span><span class="s1">postgres</span><span class="dl">'</span><span class="p">,</span>
+
+      <span class="na">url</span><span class="p">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">configService</span><span class="p">.</span><span class="kd">get</span><span class="o">&lt;</span><span class="kr">string</span><span class="o">&gt;</span><span class="p">(</span>
+        <span class="dl">'</span><span class="s1">database.url</span><span class="dl">'</span><span class="p">,</span>
+      <span class="p">),</span>
+
+      <span class="na">synchronize</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+
+      <span class="na">entities</span><span class="p">:</span> <span class="p">[</span>
+        <span class="c1">// Explicit entity imports go here.</span>
+      <span class="p">],</span>
+
+      <span class="na">migrations</span><span class="p">:</span> <span class="p">[</span>
+        <span class="c1">// Match your compiled migration files.</span>
+      <span class="p">],</span>
+
+      <span class="na">extra</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">max</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+      <span class="p">},</span>
+    <span class="p">};</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is deliberately simplified. Adapt it to your project’s actual configuration schema, SSL requirements, migration setup, and entity list.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">max: 5</code> setting is an example, not a magic number. Choose a pool size based on the database connection budget, the number of concurrently running instances, and the workload.</p>
+
+<p>The CLI and runtime configurations serve different purposes. Keeping them separate makes the behavior easier to understand and troubleshoot.</p>
+
+<h2 id="5-configure-environment-variables-in-vercel">5. Configure environment variables in Vercel</h2>
+
+<p>Your application may work locally because your <code class="language-plaintext highlighter-rouge">.env</code> file contains everything it needs.</p>
+
+<p>Vercel doesn’t automatically inherit your local environment.</p>
+
+<p>You need to configure the variables in the appropriate Vercel project and deployment environment.</p>
+
+<p>Typical variables include:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DATABASE_URL
+DATABASE_SYNCHRONIZE
+DATABASE_MAX_CONNECTIONS
+DATABASE_SSL_ENABLED
+
+AUTH_JWT_SECRET
+AUTH_REFRESH_SECRET
+
+APP_CORS_ORIGINS
+THROTTLER_TTL
+THROTTLER_LIMIT
+</code></pre></div></div>
+
+<p>The exact names depend on your application’s configuration.</p>
+
+<p>For example, if your application reads <code class="language-plaintext highlighter-rouge">database.url</code> through NestJS’s <code class="language-plaintext highlighter-rouge">ConfigService</code>, verify that the configuration layer actually maps it to <code class="language-plaintext highlighter-rouge">DATABASE_URL</code>.</p>
+
+<p>Adding a variable to Vercel doesn’t help if your application is looking for a completely different name.</p>
+
+<h3 id="51-environment-variable-checklist">5.1 Environment variable checklist</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Example</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DATABASE_URL</code></td>
+      <td>Supabase connection string</td>
+      <td>Database connectivity</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DATABASE_SYNCHRONIZE</code></td>
+      <td><code class="language-plaintext highlighter-rouge">false</code></td>
+      <td>Prevent automatic schema synchronization</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DATABASE_MAX_CONNECTIONS</code></td>
+      <td><code class="language-plaintext highlighter-rouge">5</code></td>
+      <td>Limit connections per application instance</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DATABASE_SSL_ENABLED</code></td>
+      <td><code class="language-plaintext highlighter-rouge">true</code></td>
+      <td>Enable TLS where required</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AUTH_JWT_SECRET</code></td>
+      <td>Generated secret</td>
+      <td>Sign access tokens</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AUTH_REFRESH_SECRET</code></td>
+      <td>Separate generated secret</td>
+      <td>Sign refresh tokens</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">APP_CORS_ORIGINS</code></td>
+      <td>Your frontend origin</td>
+      <td>Restrict permitted browser origins</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Generate strong, unique secrets for authentication. Never reuse the same secret for unrelated purposes.</p>
+
+<p>You can generate a random hexadecimal value locally with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl rand <span class="nt">-hex</span> 32
+</code></pre></div></div>
+
+<p>Don’t put the generated value in your repository or paste it into a public issue.</p>
+
+<h3 id="52-be-careful-with-ssl-settings">5.2 Be careful with SSL settings</h3>
+
+<p>You may find examples that use:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">ssl</span><span class="p">:</span> <span class="p">{</span>
+  <span class="nl">rejectUnauthorized</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This disables normal certificate verification. It can appear to solve a TLS connection error, but it also weakens protection against connecting to an untrusted endpoint.</p>
+
+<p>Don’t copy it blindly into production.</p>
+
+<p>Prefer a configuration that validates the server certificate correctly. If your environment has a certificate-chain problem, identify and fix the underlying issue where possible.</p>
+
+<p>A successful connection is not automatically a secure connection.</p>
+
+<p>That’s a lesson worth learning before someone else teaches it to you.</p>
+
+<h2 id="6-typeorm-in-serverless-three-details-that-can-break-everything">6. TypeORM in serverless: three details that can break everything</h2>
+
+<p>The database connection string is only part of the story. TypeORM also needs to discover entities, manage connections sensibly, and avoid relying on process state that may disappear.</p>
+
+<h3 id="61-entity-discovery-be-careful-with-globs">6.1 Entity discovery: be careful with globs</h3>
+
+<p>A common TypeORM configuration uses a glob:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">entities</span><span class="p">:</span> <span class="p">[</span>
+  <span class="nx">__dirname</span> <span class="o">+</span> <span class="dl">'</span><span class="s1">/**/*.entity{.ts,.js}</span><span class="dl">'</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>This can work well in conventional Node.js deployments, depending on the build output and directory structure.</p>
+
+<p>With serverless bundling, however, runtime file discovery and file inclusion can become more complicated. A bundler may not include files that are only discovered dynamically.</p>
+
+<p>The result can be an error such as:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>No metadata for "UserEntity" was found.
+</code></pre></div></div>
+
+<p>Or another variation of the classic:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Everything compiled successfully.
+Why is production broken?
+</code></pre></div></div>
+
+<p>One approach is to import the entity classes explicitly:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">UserEntity</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../users/entities/user.entity</span><span class="dl">'</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">ProductEntity</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../products/entities/product.entity</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">entities</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="nx">UserEntity</span><span class="p">,</span>
+  <span class="nx">ProductEntity</span><span class="p">,</span>
+<span class="p">];</span>
+</code></pre></div></div>
+
+<p>Then configure TypeORM:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">entities</span><span class="p">,</span>
+</code></pre></div></div>
+
+<p>Explicit imports make dependencies easier for bundlers to detect and make the entity list easier to inspect.</p>
+
+<p>They’re not mandatory in every deployment setup, but they’re a useful troubleshooting option when dynamic discovery fails.</p>
+
+<h3 id="62-keep-the-connection-pool-under-control">6.2 Keep the connection pool under control</h3>
+
+<p>Consider this configuration:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">extra</span><span class="p">:</span> <span class="p">{</span>
+  <span class="nl">max</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">},</span>
+</code></pre></div></div>
+
+<p>For the PostgreSQL driver, this controls the maximum size of the connection pool passed to the underlying driver.</p>
+
+<p>The correct value depends on your workload and connection limits.</p>
+
+<p>If each function instance can open five connections and the platform starts twenty instances, the theoretical combined limit is one hundred connections.</p>
+
+<p>That doesn’t mean all those connections will always be open, but it illustrates why per-instance settings matter.</p>
+
+<p>Also, don’t assume that keeping the NestJS application initialized guarantees that a database connection will remain available forever. Network interruptions, database restarts, and runtime lifecycle changes still happen.</p>
+
+<p>Design for reconnection and failure where appropriate.</p>
+
+<h3 id="63-dont-rely-on-process-memory-for-shared-state">6.3 Don’t rely on process memory for shared state</h3>
+
+<p>This is perfectly valid JavaScript:</p>
+
+<div class="language-typescript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">cache</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Map</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>But it is not a distributed cache.</p>
+
+<p>Each running function instance has its own memory. Another instance won’t automatically see the same map, and an instance can disappear at any time.</p>
+
+<p>The same warning applies to:</p>
+
+<ul>
+  <li>In-memory rate limiters.</li>
+  <li>Sessions stored only in process memory.</li>
+  <li>Application caches that need to be shared.</li>
+  <li>Background jobs that must run reliably.</li>
+  <li>Cron-like tasks tied to a process that may stop.</li>
+  <li>WebSocket connections that require a persistent connection model.</li>
+</ul>
+
+<p>If the data must be shared or survive beyond a particular instance, use an appropriate external service, such as Redis or PostgreSQL, or a dedicated job-processing system.</p>
+
+<p>Serverless doesn’t mean you can’t use state.</p>
+
+<p>It means you need to be explicit about where that state lives.</p>
+
+<p><img src="/blog/assets/images/This-is-Fine-Maximum-Cope-meme-plataforma-Img3.webp" alt="The &quot;This is fine&quot; dog surrounded by fire" /></p>
+
+<h2 id="7-deploy-and-verify">7. Deploy and verify</h2>
+
+<p>Before deploying, make sure your application builds successfully and your database schema is up to date.</p>
+
+<p>A simplified workflow might look like this:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. Run migrations from your deployment environment</span>
+npm run migration:run
+
+<span class="c"># 2. Deploy</span>
+vercel <span class="nt">--prod</span>
+</code></pre></div></div>
+
+<p>The migration command assumes your CLI configuration and environment variables are already set up correctly. Don’t run it against production until you’ve verified the target database and reviewed the migrations.</p>
+
+<p>After deployment, test the actual endpoints.</p>
+
+<p>For example:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://your-app.vercel.app/api
+</code></pre></div></div>
+
+<p>If your application exposes Swagger, you may also have endpoints such as:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://your-app.vercel.app/docs
+https://your-app.vercel.app/docs-json
+</code></pre></div></div>
+
+<p>These paths depend on your NestJS configuration. They won’t exist unless you’ve enabled and configured them.</p>
+
+<h3 id="post-deployment-checklist">Post-deployment checklist</h3>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />The deployment completes successfully.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />The application initializes without module or dependency errors.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />A basic health endpoint responds as expected.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Database queries work against the intended Supabase project.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Authentication returns the expected tokens.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Validation and error handling behave correctly.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Swagger works, if enabled.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Logs don’t show repeated connection failures or missing entity metadata.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Production uses <code class="language-plaintext highlighter-rouge">synchronize: false</code>.</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Database credentials and authentication secrets aren’t exposed.</li>
+</ul>
+
+<p>Don’t stop at “Vercel says the deployment succeeded.”</p>
+
+<p>A successful deployment means the platform deployed something. It doesn’t prove that your database works, your routes are correct, or your application can handle real requests.</p>
+
+<p>Test the application, not the green checkmark.</p>
+
+<h2 id="8-troubleshooting-the-errors-youll-probably-meet">8. Troubleshooting: the errors you’ll probably meet</h2>
+
+<p>Here’s a quick reference for some common problems.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Symptom</th>
+      <th>Possible cause</th>
+      <th>What to check</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>JSON request body is empty</td>
+      <td>Request body was parsed or consumed before Express handles it</td>
+      <td>Verify the Vercel runtime’s body-parsing behavior</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">EADDRINUSE</code> or startup problems</td>
+      <td>Application attempts to manage a listening socket in a function environment</td>
+      <td>Review the entry point and use the appropriate initialization lifecycle</td>
+    </tr>
+    <tr>
+      <td>Repeated cold-start delays</td>
+      <td>Application bootstrap runs repeatedly across invocations</td>
+      <td>Reuse initialized state within warm instances where appropriate</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">too many clients</code></td>
+      <td>Too many connections across instances or an unsuitable connection strategy</td>
+      <td>Review pool sizes, concurrency, and Supabase pooler configuration</td>
+    </tr>
+    <tr>
+      <td>SSL connection errors</td>
+      <td>TLS settings or certificate verification are incorrect</td>
+      <td>Check the connection string and certificate configuration</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">No metadata for Entity was found</code></td>
+      <td>Entity classes weren’t registered or included correctly</td>
+      <td>Verify imports, entity configuration, and build output</td>
+    </tr>
+    <tr>
+      <td>Production schema differs from local</td>
+      <td>Migrations weren’t applied or schema management is inconsistent</td>
+      <td>Review migration status and disable automatic synchronization</td>
+    </tr>
+    <tr>
+      <td>Function timeout</td>
+      <td>Request performs too much work or waits too long</td>
+      <td>Profile the request, review platform limits, and move long jobs to a suitable worker</td>
+    </tr>
+    <tr>
+      <td>Missing templates or static files</td>
+      <td>Required files weren’t included in the deployment bundle</td>
+      <td>Inspect the generated function package and configure file inclusion if supported</td>
+    </tr>
+    <tr>
+      <td>Works locally, fails after deployment</td>
+      <td>Different environment variables, paths, runtime behavior, or dependencies</td>
+      <td>Compare the actual deployment configuration with local settings</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The important word here is <em>possible</em>.</p>
+
+<p>An error message is a clue, not a diagnosis. Check the actual logs and configuration before applying a fix from a blog post written by someone who has never seen your project.</p>
+
+<p>Including me.</p>
+
+<h2 id="9-the-minimum-viable-recipe">9. The minimum viable recipe</h2>
+
+<p>If you just want the checklist without the existential crisis, here it is.</p>
+
+<ol>
+  <li>Create a PostgreSQL database in Supabase.</li>
+  <li>Choose the appropriate database connection method; consider the Supabase pooler for serverless workloads.</li>
+  <li>Configure NestJS to initialize correctly in the Vercel runtime.</li>
+  <li>Avoid starting a conventional listening server inside a function entry point unless the runtime explicitly requires that model.</li>
+  <li>Share your NestJS configuration between local and serverless entry points.</li>
+  <li>Set <code class="language-plaintext highlighter-rouge">synchronize: false</code> in production.</li>
+  <li>Run migrations as a separate deployment step.</li>
+  <li>Configure the database URL, authentication secrets, and other environment variables in Vercel.</li>
+  <li>Register entities explicitly if dynamic discovery causes bundling problems.</li>
+  <li>Keep connection pools appropriately small and account for concurrent function instances.</li>
+  <li>Verify TLS configuration rather than blindly disabling certificate verification.</li>
+  <li>Test the deployed API, database connectivity, authentication, and logs.</li>
+</ol>
+
+<p>That’s the technical part.</p>
+
+<p>The real challenge is understanding the difference between a conventional Node.js server and a serverless function. Once that clicks, most of the configuration choices become easier to explain.</p>
+
+<p>Not necessarily easier to debug.</p>
+
+<p>Let’s not get carried away.</p>
+
+<h2 id="10-why-vercel-instead-of-render">10. Why Vercel Instead of Render?</h2>
+
+<!-- MEME:  -->
+<p><img src="/blog/assets/images/everybody-was-doing-it-i-just-wanted-to-be-popular-v0-rKtqtFbNrucx6OvY-nb4b2IsR3lnZwcpLRFWmHnXJBU.webp" alt="Bender looking smug, preferably with a deployment dashboard in the background" /></p>
+
+<p>Was Vercel the only reasonable choice? No.</p>
+
+<p>Would another hosting platform have made some parts of this setup simpler? Quite possibly.</p>
+
+<p>Did I choose Vercel partly because I wanted to try it and see what all the fuss was about?</p>
+
+<p>Absolutely.</p>
+
+<p>Sometimes the best reason to try a technology is curiosity. Sometimes it’s the ecosystem. Sometimes you want to learn a deployment model you’ve never used before.</p>
+
+<p>And sometimes everybody on the internet seems to be using a platform, and you don’t want to be the only person at the party who brought a virtual machine.</p>
+
+<p>There’s nothing wrong with experimenting. Just be honest about the trade-offs.</p>
+
+<p>Vercel’s serverless model can be convenient, but it also introduces constraints around execution time, process lifecycle, connection management, and background work. A conventional application host may offer a simpler model for a long-running NestJS API.</p>
+
+<p>Choose the platform that fits your application, not the one with the most fashionable dashboard.</p>
+
+<p>Or don’t.</p>
+
+<p>I’m not your manager.</p>
+
+<h2 id="final-thoughts">Final thoughts</h2>
+
+<p>Express expects a server.</p>
+
+<p>Vercel expects a function.</p>
+
+<p>TypeORM expects its entities to exist.</p>
+
+<p>PostgreSQL expects you not to open an unreasonable number of connections.</p>
+
+<p>And you expect <code class="language-plaintext highlighter-rouge">npm run build</code> to be the end of your problems.</p>
+
+<p>One of those expectations is clearly unrealistic.</p>
+
+<p>The good news is that NestJS, TypeORM, Supabase, and Vercel can work together when the runtime, database configuration, and deployment process are designed with their constraints in mind.</p>
+
+<p>The less good news is that you’ll probably discover at least one configuration issue that wasn’t mentioned in this article.</p>
+
+<p>When you do, document it.</p>
+
+<p>Future you will be grateful. Other developers might be grateful, too.</p>
+
+<p>And if nothing else, you’ll have one more reason to write a blog post.</p>
+
+<p><strong>Saving F* Words:</strong> because sometimes the most valuable thing a developer can save isn’t a line of code.</p>
+
+<p>It’s an afternoon of debugging.</p>
+
+<p>And a few thousand swear words.</p>]]></content><author><name>Oz Gioia</name></author><category term="backend" /><category term="deployment" /><category term="nestjs" /><category term="typeorm" /><category term="postgresql" /><category term="supabase" /><category term="vercel" /><category term="serverless" /><summary type="html"><![CDATA[A practical guide to deploying NestJS, TypeORM, and PostgreSQL on Supabase and Vercel, with fewer surprises and hopefully fewer swear words.]]></summary></entry><entry><title type="html">Why I Start 20 Projects and Finish 3 (and Why That’s Okay)</title><link href="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/" rel="alternate" type="text/html" title="Why I Start 20 Projects and Finish 3 (and Why That’s Okay)" /><published>2026-09-03T16:09:00+00:00</published><updated>2026-09-03T16:09:00+00:00</updated><id>https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects</id><content type="html" xml:base="https://osgioia.dev/blog/2026/09/03/my-collection-of-abandoned-projects/"><![CDATA[<p><img src="/blog/assets/images/thomas-edison-homer.jpg" alt="My collection of abandoned projects" /></p>
 
 <p>I have a problem. It’s not serious, it doesn’t hurt, but it’s there, like a zombie process nobody killed: accumulating GitHub repositories that I open every now and then just to remind myself they exist and feel a perfectly manageable pang of guilt.</p>
 
