@@ -15,8 +15,6 @@ tags:
 description: "A practical guide to deploying NestJS, TypeORM, and PostgreSQL on Supabase and Vercel, with fewer surprises and hopefully fewer swear words."
 ---
 
-# Saving F* Words
-
 *Deploying NestJS + TypeORM + PostgreSQL to Supabase and Vercel without losing your mind.*
 
 Express wants a server. Guillermo Rauch wants a function.
